@@ -4,15 +4,23 @@ A local-first Android driving-safety application designed to detect when the use
 
 ## About
 
-DriveLock will identify probable vehicle travel, ask whether the user is driving, reduce distractions during the trip, and retain a local trip history. This repository currently establishes the maintainable application foundation; it does not perform real movement detection or distraction blocking.
+DriveLock identifies probable vehicle travel using Android Activity Recognition, asks whether the user is driving, and provides the foundation for later trip tracking and distraction reduction.
 
 ## Current MVP
 
-- Home status with development-only simulation controls
+- Permission-aware, low-power vehicle transition monitoring
 - Driver confirmation, active-drive, trip-summary, history, and settings screens
-- A mocked driving state flow from idle through trip completion
+- Debounced `IN_VEHICLE` transitions that lead to driver confirmation
 - A Room database and repository boundary for locally saved trips
-- No location, sensor, network, account, or background-service permissions
+- No GPS, network, account, or background-service permissions
+
+## Permissions
+
+DriveLock requests Activity Recognition only after showing an in-app explanation. On Android 10 and newer this is a runtime permission. Denial leaves the app usable but vehicle monitoring disabled. Location is not requested in this milestone.
+
+## How Driving Detection Works
+
+Google Play services' Activity Recognition Transition API reports low-power enter/exit changes for vehicle, walking, running, cycling, and still activities. DriveLock isolates those callbacks in an activity data source. An `IN_VEHICLE` enter must remain active through a centralized confirmation delay before the state machine asks whether the user is driving; an early exit cancels confirmation.
 
 ## Architecture
 
@@ -35,12 +43,12 @@ app/src/main/java/com/drivelock/app
 
 ## Current Status
 
-Driving detection is mocked. Debug-build controls manually advance the state so the UI flow can be developed without sensor integration. Trips are not yet recorded because real trip lifecycle data does not exist in this iteration.
+Milestone 1 activity recognition is implemented. The app can detect probable vehicle travel and ask for driver confirmation, while handling missing permission or unavailable Play services without crashing. Trips are not yet recorded because location verification and a real trip lifecycle are later milestones.
 
 ## Roadmap
 
-1. Introduce permission-aware movement and vehicle detection using Android location APIs.
-2. Add real trip lifecycle tracking and save completed trips.
+1. Add foreground location and speed verification to strengthen vehicle detection.
+2. Build a real foreground trip lifecycle and save completed trips.
 3. Improve trip summaries and history presentation.
 4. Incrementally explore distraction-reduction features permitted by Android.
 

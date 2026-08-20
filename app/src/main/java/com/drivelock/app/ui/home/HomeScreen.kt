@@ -17,16 +17,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.drivelock.app.BuildConfig
 import com.drivelock.app.R
+import com.drivelock.app.detection.MonitoringState
 
 @Composable
 fun HomeScreen(
     state: HomeUiState,
     onHistory: () -> Unit,
     onSettings: () -> Unit,
-    onSimulateMovement: () -> Unit,
-    onSimulateVehicle: () -> Unit,
+    onRequestActivityPermission: () -> Unit,
     onReset: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -46,12 +45,16 @@ fun HomeScreen(
             OutlinedButton(onClick = onSettings) { Text(stringResource(R.string.settings)) }
         }
         Spacer(Modifier.height(8.dp))
-        if (BuildConfig.DEBUG) {
-            Text(stringResource(R.string.debug), color = MaterialTheme.colorScheme.error)
-            OutlinedButton(onClick = onSimulateMovement, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.simulate_movement)) }
-            OutlinedButton(onClick = onSimulateVehicle, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.simulate_vehicle)) }
-            OutlinedButton(onClick = onReset, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.reset)) }
+        if (state.monitoringState == MonitoringState.PERMISSION_REQUIRED) {
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.activity_permission_title), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.activity_permission_rationale))
+                    Button(onClick = onRequestActivityPermission) { Text(stringResource(R.string.allow_activity_access)) }
+                }
+            }
+        } else if (state.monitoringState == MonitoringState.UNAVAILABLE) {
+            Text(stringResource(R.string.activity_recognition_unavailable), color = MaterialTheme.colorScheme.error)
         }
     }
 }
-

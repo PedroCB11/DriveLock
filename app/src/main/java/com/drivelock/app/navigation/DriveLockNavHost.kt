@@ -1,5 +1,9 @@
 package com.drivelock.app.navigation
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,6 +30,11 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
     val drivingViewModel: DrivingViewModel = viewModel(factory = DrivingViewModel.Factory(container.detectionEngine))
     val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
     val drivingState by drivingViewModel.uiState.collectAsStateWithLifecycle()
+    val activityPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        homeViewModel.startMonitoring()
+    }
+
+    LaunchedEffect(Unit) { homeViewModel.startMonitoring() }
 
     LaunchedEffect(homeState.driveState) {
         when (homeState.driveState) {
@@ -37,7 +46,21 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
     }
 
     NavHost(navController, startDestination = Route.Home.path) {
-        composable(Route.Home.path) { HomeScreen(homeState, { navController.navigate(Route.History.path) }, { navController.navigate(Route.Settings.path) }, homeViewModel::simulateMovement, homeViewModel::simulateVehicleDetection, homeViewModel::reset) }
+        composable(Route.Home.path) {
+            HomeScreen(
+                homeState,
+                { navController.navigate(Route.History.path) },
+                { navController.navigate(Route.Settings.path) },
+                {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        activityPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+                    } else {
+                        homeViewModel.startMonitoring()
+                    }
+                },
+                homeViewModel::reset,
+            )
+        }
         composable(Route.DrivingConfirmation.path) { DrivingConfirmationScreen(drivingViewModel::confirmDriver) { drivingViewModel.markPassenger(); navController.popBackStack(Route.Home.path, false) } }
         composable(Route.ActiveDrive.path) { ActiveDriveScreen(drivingState, drivingViewModel::endTrip) }
         composable(Route.TripSummary.path) { TripSummaryScreen { drivingViewModel.reset(); navController.navigate(Route.Home.path) { popUpTo(Route.Home.path) { inclusive = true } } } }
@@ -49,4 +72,3 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
         composable(Route.Settings.path) { SettingsScreen() }
     }
 }
-

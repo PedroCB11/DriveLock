@@ -31,5 +31,8 @@
     <string name="empty_history">Your completed DriveLock trips will appear here.</string>
     <string name="settings_placeholder">Settings will be available in a future iteration.</string>
     <string name="back">Back</string>
+    <string name="activity_permission_title">Motion access needed</string>
+    <string name="activity_permission_rationale">DriveLock uses low-power activity recognition to notice probable vehicle travel and ask whether you are driving. It does not use GPS at this stage.</string>
+    <string name="allow_activity_access">Allow motion access</string>
+    <string name="activity_recognition_unavailable">Activity recognition is unavailable. DriveLock cannot monitor vehicle movement right now.</string>
 </resources>
-

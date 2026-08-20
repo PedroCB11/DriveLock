@@ -7,4 +7,6 @@
 .externalNativeBuild/
 .cxx/
 app/build/
-
+/.gradle-user-home/
+/.local-jdk/
+/jdk17.zip
