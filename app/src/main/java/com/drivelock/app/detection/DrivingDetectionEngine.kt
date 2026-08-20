@@ -14,4 +14,11 @@ interface DrivingDetectionEngine {
     fun reset()
 }
 
-enum class MonitoringState { STOPPED, PERMISSION_REQUIRED, STARTING, ACTIVE, UNAVAILABLE }
+enum class MonitoringState {
+    STOPPED,
+    ACTIVITY_PERMISSION_REQUIRED,
+    LOCATION_PERMISSION_REQUIRED,
+    STARTING,
+    ACTIVE,
+    UNAVAILABLE,
+}

@@ -26,6 +26,7 @@ fun HomeScreen(
     onHistory: () -> Unit,
     onSettings: () -> Unit,
     onRequestActivityPermission: () -> Unit,
+    onRequestLocationPermission: () -> Unit,
     onReset: () -> Unit,
 ) {
     Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -45,12 +46,20 @@ fun HomeScreen(
             OutlinedButton(onClick = onSettings) { Text(stringResource(R.string.settings)) }
         }
         Spacer(Modifier.height(8.dp))
-        if (state.monitoringState == MonitoringState.PERMISSION_REQUIRED) {
+        if (state.monitoringState == MonitoringState.ACTIVITY_PERMISSION_REQUIRED) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(stringResource(R.string.activity_permission_title), style = MaterialTheme.typography.titleMedium)
                     Text(stringResource(R.string.activity_permission_rationale))
                     Button(onClick = onRequestActivityPermission) { Text(stringResource(R.string.allow_activity_access)) }
+                }
+            }
+        } else if (state.monitoringState == MonitoringState.LOCATION_PERMISSION_REQUIRED) {
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(stringResource(R.string.location_permission_title), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.location_permission_rationale))
+                    Button(onClick = onRequestLocationPermission) { Text(stringResource(R.string.allow_location_access)) }
                 }
             }
         } else if (state.monitoringState == MonitoringState.UNAVAILABLE) {

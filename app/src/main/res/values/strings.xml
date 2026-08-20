@@ -35,4 +35,7 @@
     <string name="activity_permission_rationale">DriveLock uses low-power activity recognition to notice probable vehicle travel and ask whether you are driving. It does not use GPS at this stage.</string>
     <string name="allow_activity_access">Allow motion access</string>
     <string name="activity_recognition_unavailable">Activity recognition is unavailable. DriveLock cannot monitor vehicle movement right now.</string>
+    <string name="location_permission_title">Precise location needed</string>
+    <string name="location_permission_rationale">DriveLock uses precise location briefly after vehicle movement is detected to verify sustained driving speed. Location stays on this device and is not tracked in the background at this stage.</string>
+    <string name="allow_location_access">Allow location access</string>
 </resources>

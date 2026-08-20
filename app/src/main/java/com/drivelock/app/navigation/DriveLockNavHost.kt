@@ -33,6 +33,9 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
     val activityPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         homeViewModel.startMonitoring()
     }
+    val locationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        homeViewModel.startMonitoring()
+    }
 
     LaunchedEffect(Unit) { homeViewModel.startMonitoring() }
 
@@ -57,6 +60,11 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
                     } else {
                         homeViewModel.startMonitoring()
                     }
+                },
+                {
+                    locationPermissionLauncher.launch(
+                        arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION),
+                    )
                 },
                 homeViewModel::reset,
             )
