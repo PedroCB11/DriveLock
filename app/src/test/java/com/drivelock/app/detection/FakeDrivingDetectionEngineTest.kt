@@ -13,9 +13,11 @@ class FakeDrivingDetectionEngineTest {
         assertEquals(DriveState.CONFIRMING_DRIVER, engine.driveState.value)
         engine.confirmDriver()
         assertEquals(DriveState.DRIVING, engine.driveState.value)
+        assertEquals(DriverDecision.DRIVER, engine.driverDecision.value)
         engine.simulateTripEnd()
         assertEquals(DriveState.POSSIBLE_TRIP_END, engine.driveState.value)
         engine.reset()
         assertEquals(DriveState.IDLE, engine.driveState.value)
+        assertEquals(DriverDecision.UNKNOWN, engine.driverDecision.value)
     }
 }

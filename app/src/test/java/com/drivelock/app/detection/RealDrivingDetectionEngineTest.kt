@@ -27,6 +27,9 @@ class RealDrivingDetectionEngineTest {
         assertEquals(DriveState.MOVEMENT_DETECTED, engine.driveState.value)
         location.events.emit(sample(6f, 1_000)); location.events.emit(sample(7f, 1_500)); location.events.emit(sample(8f, 2_000)); runCurrent()
         assertEquals(DriveState.CONFIRMING_DRIVER, engine.driveState.value)
+        engine.confirmDriver()
+        assertEquals(DriverDecision.DRIVER, engine.driverDecision.value)
+        assertEquals(DriveState.DRIVING, engine.driveState.value)
         engine.stopMonitoring()
     }
 
@@ -66,6 +69,33 @@ class RealDrivingDetectionEngineTest {
         activity.events.emit(ActivityTransitionSignal(RecognizedActivity.IN_VEHICLE, TransitionType.ENTER)); runCurrent()
         assertEquals(MonitoringState.LOCATION_PERMISSION_REQUIRED, engine.monitoringState.value)
         engine.stopMonitoring()
+    }
+
+    @Test fun `passenger decision is kept until vehicle exit`() = runTest {
+        val activity = FakeActivitySource()
+        val location = FakeLocationSource()
+        val engine = RealDrivingDetectionEngine(activity, location, this, config)
+        engine.startMonitoring(); runCurrent()
+        activity.events.emit(ActivityTransitionSignal(RecognizedActivity.IN_VEHICLE, TransitionType.ENTER)); runCurrent()
+        location.events.emit(sample(6f, 1_000)); location.events.emit(sample(7f, 1_500)); location.events.emit(sample(8f, 2_000)); runCurrent()
+
+        engine.markPassenger()
+        assertEquals(DriverDecision.PASSENGER, engine.driverDecision.value)
+        assertEquals(DriveState.IDLE, engine.driveState.value)
+        activity.events.emit(ActivityTransitionSignal(RecognizedActivity.IN_VEHICLE, TransitionType.ENTER)); runCurrent()
+        assertEquals(DriveState.IDLE, engine.driveState.value)
+
+        activity.events.emit(ActivityTransitionSignal(RecognizedActivity.IN_VEHICLE, TransitionType.EXIT)); runCurrent()
+        assertEquals(DriverDecision.UNKNOWN, engine.driverDecision.value)
+        engine.stopMonitoring()
+    }
+
+    @Test fun `driver decision is ignored outside confirmation state`() = runTest {
+        val engine = RealDrivingDetectionEngine(FakeActivitySource(), FakeLocationSource(), this)
+        engine.confirmDriver()
+        engine.markPassenger()
+        assertEquals(DriverDecision.UNKNOWN, engine.driverDecision.value)
+        assertEquals(DriveState.IDLE, engine.driveState.value)
     }
 }
 

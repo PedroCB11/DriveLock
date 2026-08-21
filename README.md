@@ -11,6 +11,7 @@ DriveLock combines Android Activity Recognition with short, foreground-only spee
 - Permission-aware, low-power vehicle transition monitoring
 - Foreground Fused Location speed verification after a vehicle transition
 - Driver confirmation, active-drive, trip-summary, history, and settings screens
+- Session-scoped driver/passenger decisions with duplicate-prompt suppression
 - Debounced `IN_VEHICLE` transitions that lead to driver confirmation
 - A Room database and repository boundary for locally saved trips
 - No background-location, network, account, or foreground-service permissions
@@ -44,12 +45,12 @@ app/src/main/java/com/drivelock/app
 
 ## Current Status
 
-Milestone 2 foreground location verification is implemented. Activity Recognition triggers a brief high-accuracy speed check before driver confirmation. Permissions and unavailable services degrade without crashing. Trips are not yet recorded because a foreground tracking service and real trip lifecycle are later milestones.
+Milestone 3 driver confirmation is implemented. Activity Recognition triggers a brief high-accuracy speed check before confirmation, and the driver/passenger answer is retained for the current vehicle session. A passenger is not prompted again until an `IN_VEHICLE` exit occurs. Trips are not yet recorded because a foreground tracking service and real trip lifecycle are later milestones.
 
 ## Roadmap
 
-1. Complete the production driver/passenger decision flow and preserve the current-session choice.
-2. Build a foreground trip-tracking service and `TripSessionManager`.
+1. Build a foreground trip-tracking service and `TripSessionManager`.
+2. Calculate elapsed time, distance, and speed statistics.
 3. Detect trip end and persist completed trips.
 4. Incrementally explore distraction-reduction features permitted by Android.
 

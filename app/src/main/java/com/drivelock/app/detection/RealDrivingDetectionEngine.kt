@@ -22,6 +22,8 @@ class RealDrivingDetectionEngine(
     override val driveState = mutableDriveState.asStateFlow()
     private val mutableMonitoringState = MutableStateFlow(MonitoringState.STOPPED)
     override val monitoringState = mutableMonitoringState.asStateFlow()
+    private val mutableDriverDecision = MutableStateFlow(DriverDecision.UNKNOWN)
+    override val driverDecision = mutableDriverDecision.asStateFlow()
     private var signalJob: Job? = null
     private var locationJob: Job? = null
     private val speedVerifier = VehicleSpeedVerifier(config)
@@ -46,14 +48,19 @@ class RealDrivingDetectionEngine(
         signalJob = null
         mutableMonitoringState.value = MonitoringState.STOPPED
         mutableDriveState.value = DriveState.IDLE
+        mutableDriverDecision.value = DriverDecision.UNKNOWN
     }
 
     internal fun handleSignal(signal: com.drivelock.app.detection.activity.ActivityTransitionSignal) {
         if (signal.activity == RecognizedActivity.IN_VEHICLE && signal.transition == TransitionType.ENTER) {
+            if (mutableDriverDecision.value == DriverDecision.PASSENGER) return
             mutableDriveState.value = DriveState.MOVEMENT_DETECTED
             startLocationVerification()
         } else if (signal.activity == RecognizedActivity.IN_VEHICLE && signal.transition == TransitionType.EXIT) {
             stopLocationVerification()
+            if (mutableDriverDecision.value == DriverDecision.PASSENGER) {
+                mutableDriverDecision.value = DriverDecision.UNKNOWN
+            }
             if (mutableDriveState.value != DriveState.DRIVING) mutableDriveState.value = DriveState.IDLE
         }
     }
@@ -85,8 +92,22 @@ class RealDrivingDetectionEngine(
         speedVerifier.reset()
     }
 
-    override fun confirmDriver() { mutableDriveState.value = DriveState.DRIVING }
-    override fun markPassenger() { stopLocationVerification(); mutableDriveState.value = DriveState.IDLE }
+    override fun confirmDriver() {
+        if (mutableDriveState.value != DriveState.CONFIRMING_DRIVER) return
+        mutableDriverDecision.value = DriverDecision.DRIVER
+        mutableDriveState.value = DriveState.DRIVING
+    }
+
+    override fun markPassenger() {
+        if (mutableDriveState.value != DriveState.CONFIRMING_DRIVER) return
+        stopLocationVerification()
+        mutableDriverDecision.value = DriverDecision.PASSENGER
+        mutableDriveState.value = DriveState.IDLE
+    }
     override fun endTrip() { mutableDriveState.value = DriveState.POSSIBLE_TRIP_END }
-    override fun reset() { stopLocationVerification(); mutableDriveState.value = DriveState.IDLE }
+    override fun reset() {
+        stopLocationVerification()
+        mutableDriverDecision.value = DriverDecision.UNKNOWN
+        mutableDriveState.value = DriveState.IDLE
+    }
 }

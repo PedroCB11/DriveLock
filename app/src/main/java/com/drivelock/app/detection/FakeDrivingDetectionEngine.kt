@@ -10,15 +10,25 @@ class FakeDrivingDetectionEngine : DrivingDetectionEngine {
     override val driveState: StateFlow<DriveState> = mutableDriveState.asStateFlow()
     private val mutableMonitoringState = MutableStateFlow(MonitoringState.STOPPED)
     override val monitoringState = mutableMonitoringState.asStateFlow()
+    private val mutableDriverDecision = MutableStateFlow(DriverDecision.UNKNOWN)
+    override val driverDecision = mutableDriverDecision.asStateFlow()
 
     override fun startMonitoring() { mutableMonitoringState.value = MonitoringState.ACTIVE }
-    override fun stopMonitoring() { mutableMonitoringState.value = MonitoringState.STOPPED; mutableDriveState.value = DriveState.IDLE }
+    override fun stopMonitoring() { mutableMonitoringState.value = MonitoringState.STOPPED; reset() }
 
     fun simulateMovement() { mutableDriveState.value = DriveState.MOVEMENT_DETECTED }
     fun simulateVehicleDetection() { mutableDriveState.value = DriveState.CONFIRMING_DRIVER }
-    override fun confirmDriver() { mutableDriveState.value = DriveState.DRIVING }
-    override fun markPassenger() { mutableDriveState.value = DriveState.IDLE }
+    override fun confirmDriver() {
+        if (mutableDriveState.value != DriveState.CONFIRMING_DRIVER) return
+        mutableDriverDecision.value = DriverDecision.DRIVER
+        mutableDriveState.value = DriveState.DRIVING
+    }
+    override fun markPassenger() {
+        if (mutableDriveState.value != DriveState.CONFIRMING_DRIVER) return
+        mutableDriverDecision.value = DriverDecision.PASSENGER
+        mutableDriveState.value = DriveState.IDLE
+    }
     fun simulateTripEnd() { mutableDriveState.value = DriveState.POSSIBLE_TRIP_END }
     override fun endTrip() = simulateTripEnd()
-    override fun reset() { mutableDriveState.value = DriveState.IDLE }
+    override fun reset() { mutableDriverDecision.value = DriverDecision.UNKNOWN; mutableDriveState.value = DriveState.IDLE }
 }

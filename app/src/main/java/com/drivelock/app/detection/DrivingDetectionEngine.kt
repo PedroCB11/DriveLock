@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 interface DrivingDetectionEngine {
     val driveState: StateFlow<DriveState>
     val monitoringState: StateFlow<MonitoringState>
+    val driverDecision: StateFlow<DriverDecision>
     fun startMonitoring()
     fun stopMonitoring()
     fun confirmDriver()
@@ -13,6 +14,8 @@ interface DrivingDetectionEngine {
     fun endTrip()
     fun reset()
 }
+
+enum class DriverDecision { UNKNOWN, DRIVER, PASSENGER }
 
 enum class MonitoringState {
     STOPPED,

@@ -5,11 +5,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.drivelock.app.detection.DrivingDetectionEngine
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 class DrivingViewModel(private val engine: DrivingDetectionEngine) : ViewModel() {
-    val uiState = engine.driveState.map { driveState -> DrivingUiState(driveState = driveState) }
+    val uiState = combine(engine.driveState, engine.driverDecision) { driveState, decision ->
+        DrivingUiState(driveState = driveState, driverDecision = decision)
+    }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DrivingUiState())
 
     fun confirmDriver() = engine.confirmDriver()

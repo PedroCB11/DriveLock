@@ -9,4 +9,5 @@
 app/build/
 /.gradle-user-home/
 /.local-jdk/
+/.android-user-home/
 /jdk17.zip
