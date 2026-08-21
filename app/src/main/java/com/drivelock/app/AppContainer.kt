@@ -8,6 +8,8 @@ import com.drivelock.app.detection.RealDrivingDetectionEngine
 import com.drivelock.app.detection.activity.PlayServicesActivityRecognitionDataSource
 import com.drivelock.app.detection.location.FusedLocationDataSource
 import com.drivelock.app.domain.repository.TripRepository
+import com.drivelock.app.tracking.AndroidTripTrackingController
+import com.drivelock.app.tracking.TripSessionManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,7 +23,14 @@ class AppContainer(context: Context) {
 
     val tripRepository: TripRepository = TripRepositoryImpl(database.tripDao())
     val activityRecognitionDataSource = PlayServicesActivityRecognitionDataSource(context.applicationContext)
-    private val locationDataSource = FusedLocationDataSource(context.applicationContext)
+    val locationDataSource = FusedLocationDataSource(context.applicationContext)
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    val detectionEngine = RealDrivingDetectionEngine(activityRecognitionDataSource, locationDataSource, applicationScope)
+    val tripSessionManager = TripSessionManager()
+    private val tripTrackingController = AndroidTripTrackingController(context.applicationContext)
+    val detectionEngine = RealDrivingDetectionEngine(
+        activityRecognitionDataSource,
+        locationDataSource,
+        applicationScope,
+        tripTrackingController = tripTrackingController,
+    )
 }

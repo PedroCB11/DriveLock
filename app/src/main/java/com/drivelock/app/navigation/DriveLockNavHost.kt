@@ -27,7 +27,9 @@ import com.drivelock.app.ui.summary.TripSummaryScreen
 @Composable
 fun DriveLockNavHost(navController: NavHostController, container: AppContainer) {
     val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(container.tripRepository, container.detectionEngine))
-    val drivingViewModel: DrivingViewModel = viewModel(factory = DrivingViewModel.Factory(container.detectionEngine))
+    val drivingViewModel: DrivingViewModel = viewModel(
+        factory = DrivingViewModel.Factory(container.detectionEngine, container.tripSessionManager),
+    )
     val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
     val drivingState by drivingViewModel.uiState.collectAsStateWithLifecycle()
     val activityPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -35,6 +37,9 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
     }
     val locationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         homeViewModel.startMonitoring()
+    }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+        drivingViewModel.confirmDriver()
     }
 
     LaunchedEffect(Unit) { homeViewModel.startMonitoring() }
@@ -69,7 +74,18 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
                 homeViewModel::reset,
             )
         }
-        composable(Route.DrivingConfirmation.path) { DrivingConfirmationScreen(drivingViewModel::confirmDriver) { drivingViewModel.markPassenger(); navController.popBackStack(Route.Home.path, false) } }
+        composable(Route.DrivingConfirmation.path) {
+            DrivingConfirmationScreen(
+                onDriver = {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        drivingViewModel.confirmDriver()
+                    }
+                },
+                onPassenger = { drivingViewModel.markPassenger(); navController.popBackStack(Route.Home.path, false) },
+            )
+        }
         composable(Route.ActiveDrive.path) { ActiveDriveScreen(drivingState, drivingViewModel::endTrip) }
         composable(Route.TripSummary.path) { TripSummaryScreen { drivingViewModel.reset(); navController.navigate(Route.Home.path) { popUpTo(Route.Home.path) { inclusive = true } } } }
         composable(Route.History.path) {

@@ -28,6 +28,12 @@ fun DrivingConfirmationScreen(onDriver: () -> Unit, onPassenger: () -> Unit) {
     ) {
         Text(stringResource(R.string.vehicle_detected), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
         Text(stringResource(R.string.are_you_driving), style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(24.dp))
+        Text(
+            stringResource(R.string.notification_permission_explanation),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 16.dp),
+        )
         Button(onClick = onDriver, Modifier.fillMaxWidth()) { Text(stringResource(R.string.yes_driving)) }
         OutlinedButton(onClick = onPassenger, Modifier.fillMaxWidth().padding(top = 12.dp)) { Text(stringResource(R.string.passenger)) }
     }

@@ -38,4 +38,8 @@
     <string name="location_permission_title">Precise location needed</string>
     <string name="location_permission_rationale">DriveLock uses precise location briefly after vehicle movement is detected to verify sustained driving speed. Location stays on this device and is not tracked in the background at this stage.</string>
     <string name="allow_location_access">Allow location access</string>
+    <string name="trip_notification_channel">Active trip</string>
+    <string name="trip_notification_title">DriveLock active</string>
+    <string name="trip_notification_text">%1$d min · %2$.1f km</string>
+    <string name="notification_permission_explanation">DriveLock shows an ongoing notification while tracking so Android and you can see that location is active.</string>
 </resources>

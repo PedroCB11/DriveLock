@@ -30,5 +30,6 @@ class FakeDrivingDetectionEngine : DrivingDetectionEngine {
     }
     fun simulateTripEnd() { mutableDriveState.value = DriveState.POSSIBLE_TRIP_END }
     override fun endTrip() = simulateTripEnd()
+    override fun onTrackingStopped() = simulateTripEnd()
     override fun reset() { mutableDriverDecision.value = DriverDecision.UNKNOWN; mutableDriveState.value = DriveState.IDLE }
 }

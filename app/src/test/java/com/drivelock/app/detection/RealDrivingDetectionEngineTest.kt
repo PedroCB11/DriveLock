@@ -7,6 +7,7 @@ import com.drivelock.app.detection.activity.TransitionType
 import com.drivelock.app.detection.location.LocationDataSource
 import com.drivelock.app.detection.location.LocationSample
 import com.drivelock.app.domain.model.DriveState
+import com.drivelock.app.tracking.TripTrackingController
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.runCurrent
@@ -97,6 +98,23 @@ class RealDrivingDetectionEngineTest {
         assertEquals(DriverDecision.UNKNOWN, engine.driverDecision.value)
         assertEquals(DriveState.IDLE, engine.driveState.value)
     }
+
+    @Test fun `driver confirmation starts tracking and trip end stops it`() = runTest {
+        val activity = FakeActivitySource()
+        val location = FakeLocationSource()
+        val tracking = FakeTrackingController()
+        val engine = RealDrivingDetectionEngine(activity, location, this, config, tracking)
+        engine.startMonitoring(); runCurrent()
+        activity.events.emit(ActivityTransitionSignal(RecognizedActivity.IN_VEHICLE, TransitionType.ENTER)); runCurrent()
+        location.events.emit(sample(6f, 1_000)); location.events.emit(sample(7f, 1_500)); location.events.emit(sample(8f, 2_000)); runCurrent()
+
+        engine.confirmDriver()
+        assertEquals(1, tracking.startCount)
+        engine.endTrip()
+        assertEquals(1, tracking.stopCount)
+        assertEquals(DriveState.POSSIBLE_TRIP_END, engine.driveState.value)
+        engine.stopMonitoring()
+    }
 }
 
 private fun sample(speed: Float, time: Long, accuracy: Float = 10f) = LocationSample(0.0, 0.0, speed, accuracy, time)
@@ -115,5 +133,12 @@ private class FakeLocationSource(private val permission: Boolean = true) : Locat
     var stopCount = 0
     override fun hasPreciseLocationPermission() = permission
     override fun start(onResult: (Result<Unit>) -> Unit) = onResult(Result.success(Unit))
+    override fun stop() { stopCount += 1 }
+}
+
+private class FakeTrackingController : TripTrackingController {
+    var startCount = 0
+    var stopCount = 0
+    override fun start(): Result<Unit> { startCount += 1; return Result.success(Unit) }
     override fun stop() { stopCount += 1 }
 }

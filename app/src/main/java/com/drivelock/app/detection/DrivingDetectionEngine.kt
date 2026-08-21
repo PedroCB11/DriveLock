@@ -12,6 +12,7 @@ interface DrivingDetectionEngine {
     fun confirmDriver()
     fun markPassenger()
     fun endTrip()
+    fun onTrackingStopped()
     fun reset()
 }
 

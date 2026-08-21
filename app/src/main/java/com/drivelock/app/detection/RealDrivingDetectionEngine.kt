@@ -6,6 +6,8 @@ import com.drivelock.app.detection.activity.TransitionType
 import com.drivelock.app.detection.location.LocationDataSource
 import com.drivelock.app.detection.location.VehicleSpeedVerifier
 import com.drivelock.app.domain.model.DriveState
+import com.drivelock.app.tracking.NoOpTripTrackingController
+import com.drivelock.app.tracking.TripTrackingController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +19,7 @@ class RealDrivingDetectionEngine(
     private val locationDataSource: LocationDataSource,
     private val scope: CoroutineScope,
     private val config: DetectionConfig = DetectionConfig(),
+    private val tripTrackingController: TripTrackingController = NoOpTripTrackingController,
 ) : DrivingDetectionEngine {
     private val mutableDriveState = MutableStateFlow(DriveState.IDLE)
     override val driveState = mutableDriveState.asStateFlow()
@@ -44,6 +47,7 @@ class RealDrivingDetectionEngine(
     override fun stopMonitoring() {
         dataSource.stop()
         stopLocationVerification()
+        tripTrackingController.stop()
         signalJob?.cancel()
         signalJob = null
         mutableMonitoringState.value = MonitoringState.STOPPED
@@ -94,6 +98,11 @@ class RealDrivingDetectionEngine(
 
     override fun confirmDriver() {
         if (mutableDriveState.value != DriveState.CONFIRMING_DRIVER) return
+        val startResult = tripTrackingController.start()
+        if (startResult.isFailure) {
+            mutableMonitoringState.value = MonitoringState.UNAVAILABLE
+            return
+        }
         mutableDriverDecision.value = DriverDecision.DRIVER
         mutableDriveState.value = DriveState.DRIVING
     }
@@ -104,9 +113,18 @@ class RealDrivingDetectionEngine(
         mutableDriverDecision.value = DriverDecision.PASSENGER
         mutableDriveState.value = DriveState.IDLE
     }
-    override fun endTrip() { mutableDriveState.value = DriveState.POSSIBLE_TRIP_END }
+    override fun endTrip() {
+        if (mutableDriveState.value != DriveState.DRIVING) return
+        tripTrackingController.stop()
+        onTrackingStopped()
+    }
+
+    override fun onTrackingStopped() {
+        if (mutableDriverDecision.value == DriverDecision.DRIVER) mutableDriveState.value = DriveState.POSSIBLE_TRIP_END
+    }
     override fun reset() {
         stopLocationVerification()
+        tripTrackingController.stop()
         mutableDriverDecision.value = DriverDecision.UNKNOWN
         mutableDriveState.value = DriveState.IDLE
     }

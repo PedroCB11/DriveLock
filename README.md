@@ -12,13 +12,15 @@ DriveLock combines Android Activity Recognition with short, foreground-only spee
 - Foreground Fused Location speed verification after a vehicle transition
 - Driver confirmation, active-drive, trip-summary, history, and settings screens
 - Session-scoped driver/passenger decisions with duplicate-prompt suppression
+- Foreground trip tracking with an ongoing notification
+- Live elapsed time, filtered distance, current speed, average speed, and maximum speed in memory
 - Debounced `IN_VEHICLE` transitions that lead to driver confirmation
 - A Room database and repository boundary for locally saved trips
-- No background-location, network, account, or foreground-service permissions
+- No background-location, network, or account permissions
 
 ## Permissions
 
-DriveLock requests Activity Recognition only after showing an in-app explanation. Precise foreground location is requested progressively, when probable vehicle movement needs speed verification. Denial leaves the app usable but automatic confirmation disabled. Background location is not requested.
+DriveLock requests Activity Recognition only after showing an in-app explanation. Precise foreground location is requested progressively, when probable vehicle movement needs speed verification. Android 13 and newer also receive a contextual notification-permission request when the user confirms they are driving. Background location is not requested.
 
 ## How Driving Detection Works
 
@@ -45,13 +47,13 @@ app/src/main/java/com/drivelock/app
 
 ## Current Status
 
-Milestone 3 driver confirmation is implemented. Activity Recognition triggers a brief high-accuracy speed check before confirmation, and the driver/passenger answer is retained for the current vehicle session. A passenger is not prompted again until an `IN_VEHICLE` exit occurs. Trips are not yet recorded because a foreground tracking service and real trip lifecycle are later milestones.
+Milestone 4 active trip tracking is implemented. Driver confirmation starts a location foreground service with an ongoing notification. `TripSessionManager` maintains live time, filtered sequential distance, and speed metrics independently of the UI. Completed sessions are not persisted yet.
 
 ## Roadmap
 
-1. Build a foreground trip-tracking service and `TripSessionManager`.
-2. Calculate elapsed time, distance, and speed statistics.
-3. Detect trip end and persist completed trips.
+1. Detect probable trip end with stationary and speed hysteresis.
+2. Finalize and persist completed trips through Room.
+3. Present real trip summaries and history.
 4. Incrementally explore distraction-reduction features permitted by Android.
 
 ## Build
