@@ -115,6 +115,26 @@ class RealDrivingDetectionEngineTest {
         assertEquals(DriveState.POSSIBLE_TRIP_END, engine.driveState.value)
         engine.stopMonitoring()
     }
+
+    @Test fun `probable trip end automatically stops active tracking`() = runTest {
+        val activity = FakeActivitySource()
+        val location = FakeLocationSource()
+        val tracking = FakeTrackingController()
+        val endDetector = TripEndDetector(DetectionConfig(tripEndStationaryDurationMillis = 1_000))
+        val engine = RealDrivingDetectionEngine(activity, location, this, config, tracking, endDetector)
+        engine.startMonitoring(); runCurrent()
+        activity.events.emit(ActivityTransitionSignal(RecognizedActivity.IN_VEHICLE, TransitionType.ENTER, 100)); runCurrent()
+        location.events.emit(sample(6f, 1_000)); location.events.emit(sample(7f, 1_500)); location.events.emit(sample(8f, 2_000)); runCurrent()
+        engine.confirmDriver()
+
+        endDetector.onLocation(LocationSample(0.0, 0.0, 0f, 10f, 3_000))
+        activity.events.emit(ActivityTransitionSignal(RecognizedActivity.IN_VEHICLE, TransitionType.EXIT, 3_500)); runCurrent()
+        endDetector.tick(4_000); runCurrent()
+
+        assertEquals(DriveState.POSSIBLE_TRIP_END, engine.driveState.value)
+        assertEquals(1, tracking.stopCount)
+        engine.stopMonitoring()
+    }
 }
 
 private fun sample(speed: Float, time: Long, accuracy: Float = 10f) = LocationSample(0.0, 0.0, speed, accuracy, time)

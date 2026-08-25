@@ -50,11 +50,15 @@ class TripTrackingService : Service() {
         )
         container.tripSessionManager.start(System.currentTimeMillis(), SystemClock.elapsedRealtime())
         trackingJob = serviceScope.launch {
-            container.locationDataSource.samples.collectLatest(container.tripSessionManager::addLocation)
+            container.locationDataSource.samples.collectLatest { sample ->
+                container.tripSessionManager.addLocation(sample)
+                container.tripEndDetector.onLocation(sample)
+            }
         }
         tickerJob = serviceScope.launch {
             while (true) {
                 container.tripSessionManager.updateElapsed(SystemClock.elapsedRealtime())
+                container.tripEndDetector.tick(SystemClock.elapsedRealtime())
                 delay(1_000)
             }
         }

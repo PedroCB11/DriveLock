@@ -14,6 +14,7 @@ DriveLock combines Android Activity Recognition with short, foreground-only spee
 - Session-scoped driver/passenger decisions with duplicate-prompt suppression
 - Foreground trip tracking with an ongoing notification
 - Live elapsed time, filtered distance, current speed, average speed, and maximum speed in memory
+- Probable trip-end detection combining vehicle exit and sustained low speed
 - Debounced `IN_VEHICLE` transitions that lead to driver confirmation
 - A Room database and repository boundary for locally saved trips
 - No background-location, network, or account permissions
@@ -24,7 +25,7 @@ DriveLock requests Activity Recognition only after showing an in-app explanation
 
 ## How Driving Detection Works
 
-Google Play services' Activity Recognition Transition API reports low-power enter/exit changes for vehicle, walking, running, cycling, and still activities. An `IN_VEHICLE` enter temporarily starts Fused Location updates. DriveLock requires at least three accurate, ordered samples at or above 5.5 m/s over ten seconds before asking whether the user is driving. Poor accuracy, missing speed, slow movement, or an early vehicle exit resets the verification window.
+Google Play services' Activity Recognition Transition API reports low-power enter/exit changes for vehicle, walking, running, cycling, and still activities. An `IN_VEHICLE` enter temporarily starts Fused Location updates. DriveLock requires at least three accurate, ordered samples at or above 5.5 m/s over ten seconds before asking whether the user is driving. During an active trip, an `IN_VEHICLE` exit must coincide with speed at or below 1.5 m/s for 60 seconds before the trip ends; renewed speed or vehicle presence cancels that window.
 
 ## Architecture
 
@@ -47,13 +48,13 @@ app/src/main/java/com/drivelock/app
 
 ## Current Status
 
-Milestone 4 active trip tracking is implemented. Driver confirmation starts a location foreground service with an ongoing notification. `TripSessionManager` maintains live time, filtered sequential distance, and speed metrics independently of the UI. Completed sessions are not persisted yet.
+Milestone 5 probable trip-end detection is implemented. Driver confirmation starts a location foreground service, and DriveLock ends it only after vehicle exit plus sustained low speed. Traffic-light stops alone do not end a trip. Completed sessions are not persisted yet.
 
 ## Roadmap
 
-1. Detect probable trip end with stationary and speed hysteresis.
-2. Finalize and persist completed trips through Room.
-3. Present real trip summaries and history.
+1. Finalize and persist completed trips through Room.
+2. Present real trip summaries and history.
+3. Add onboarding and production permission guidance.
 4. Incrementally explore distraction-reduction features permitted by Android.
 
 ## Build

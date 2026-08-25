@@ -20,6 +20,7 @@ class RealDrivingDetectionEngine(
     private val scope: CoroutineScope,
     private val config: DetectionConfig = DetectionConfig(),
     private val tripTrackingController: TripTrackingController = NoOpTripTrackingController,
+    private val tripEndDetector: TripEndDetector = TripEndDetector(config),
 ) : DrivingDetectionEngine {
     private val mutableDriveState = MutableStateFlow(DriveState.IDLE)
     override val driveState = mutableDriveState.asStateFlow()
@@ -29,6 +30,7 @@ class RealDrivingDetectionEngine(
     override val driverDecision = mutableDriverDecision.asStateFlow()
     private var signalJob: Job? = null
     private var locationJob: Job? = null
+    private var tripEndJob: Job? = null
     private val speedVerifier = VehicleSpeedVerifier(config)
 
     override fun startMonitoring() {
@@ -37,6 +39,9 @@ class RealDrivingDetectionEngine(
             return
         }
         if (signalJob == null) signalJob = scope.launch { dataSource.signals.collect(::handleSignal) }
+        if (tripEndJob == null) tripEndJob = scope.launch {
+            tripEndDetector.probableTripEnd.collect { probable -> if (probable) endTrip() }
+        }
         mutableMonitoringState.value = MonitoringState.STARTING
         dataSource.start { result ->
             mutableMonitoringState.value = if (result.isSuccess) MonitoringState.ACTIVE else MonitoringState.UNAVAILABLE
@@ -50,6 +55,9 @@ class RealDrivingDetectionEngine(
         tripTrackingController.stop()
         signalJob?.cancel()
         signalJob = null
+        tripEndJob?.cancel()
+        tripEndJob = null
+        tripEndDetector.reset()
         mutableMonitoringState.value = MonitoringState.STOPPED
         mutableDriveState.value = DriveState.IDLE
         mutableDriverDecision.value = DriverDecision.UNKNOWN
@@ -57,11 +65,14 @@ class RealDrivingDetectionEngine(
 
     internal fun handleSignal(signal: com.drivelock.app.detection.activity.ActivityTransitionSignal) {
         if (signal.activity == RecognizedActivity.IN_VEHICLE && signal.transition == TransitionType.ENTER) {
+            tripEndDetector.onVehiclePresenceChanged(true, signal.elapsedRealtimeMillis)
             if (mutableDriverDecision.value == DriverDecision.PASSENGER) return
+            if (mutableDriveState.value == DriveState.DRIVING) return
             mutableDriveState.value = DriveState.MOVEMENT_DETECTED
             startLocationVerification()
         } else if (signal.activity == RecognizedActivity.IN_VEHICLE && signal.transition == TransitionType.EXIT) {
-            stopLocationVerification()
+            tripEndDetector.onVehiclePresenceChanged(false, signal.elapsedRealtimeMillis)
+            if (mutableDriveState.value != DriveState.DRIVING) stopLocationVerification()
             if (mutableDriverDecision.value == DriverDecision.PASSENGER) {
                 mutableDriverDecision.value = DriverDecision.UNKNOWN
             }
@@ -103,6 +114,7 @@ class RealDrivingDetectionEngine(
             mutableMonitoringState.value = MonitoringState.UNAVAILABLE
             return
         }
+        tripEndDetector.startSession()
         mutableDriverDecision.value = DriverDecision.DRIVER
         mutableDriveState.value = DriveState.DRIVING
     }
@@ -120,11 +132,13 @@ class RealDrivingDetectionEngine(
     }
 
     override fun onTrackingStopped() {
+        tripEndDetector.reset()
         if (mutableDriverDecision.value == DriverDecision.DRIVER) mutableDriveState.value = DriveState.POSSIBLE_TRIP_END
     }
     override fun reset() {
         stopLocationVerification()
         tripTrackingController.stop()
+        tripEndDetector.reset()
         mutableDriverDecision.value = DriverDecision.UNKNOWN
         mutableDriveState.value = DriveState.IDLE
     }

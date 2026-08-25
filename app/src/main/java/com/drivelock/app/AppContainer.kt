@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.drivelock.app.data.local.DriveLockDatabase
 import com.drivelock.app.data.repository.TripRepositoryImpl
 import com.drivelock.app.detection.RealDrivingDetectionEngine
+import com.drivelock.app.detection.TripEndDetector
 import com.drivelock.app.detection.activity.PlayServicesActivityRecognitionDataSource
 import com.drivelock.app.detection.location.FusedLocationDataSource
 import com.drivelock.app.domain.repository.TripRepository
@@ -26,11 +27,13 @@ class AppContainer(context: Context) {
     val locationDataSource = FusedLocationDataSource(context.applicationContext)
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     val tripSessionManager = TripSessionManager()
+    val tripEndDetector = TripEndDetector()
     private val tripTrackingController = AndroidTripTrackingController(context.applicationContext)
     val detectionEngine = RealDrivingDetectionEngine(
         activityRecognitionDataSource,
         locationDataSource,
         applicationScope,
         tripTrackingController = tripTrackingController,
+        tripEndDetector = tripEndDetector,
     )
 }

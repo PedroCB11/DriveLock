@@ -15,7 +15,7 @@ class ActivityTransitionReceiver : BroadcastReceiver() {
         result.transitionEvents.forEach { event ->
             val activity = event.activityType.toDomainActivity() ?: return@forEach
             val transition = if (event.transitionType == ActivityTransition.ACTIVITY_TRANSITION_ENTER) TransitionType.ENTER else TransitionType.EXIT
-            source.emit(ActivityTransitionSignal(activity, transition))
+            source.emit(ActivityTransitionSignal(activity, transition, event.elapsedRealTimeNanos / 1_000_000))
         }
     }
 }
