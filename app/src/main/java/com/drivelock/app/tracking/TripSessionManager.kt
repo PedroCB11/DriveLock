@@ -3,6 +3,8 @@ package com.drivelock.app.tracking
 import com.drivelock.app.detection.location.LocationSample
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlin.math.asin
 import kotlin.math.cos
 import kotlin.math.sin
@@ -11,16 +13,23 @@ import kotlin.math.sqrt
 data class TripSessionState(
     val isActive: Boolean = false,
     val startTimeMillis: Long? = null,
+    val endTimeMillis: Long? = null,
     val elapsedMillis: Long = 0,
     val distanceMeters: Double = 0.0,
     val currentSpeedMetersPerSecond: Float = 0f,
     val averageSpeedMetersPerSecond: Double = 0.0,
     val maximumSpeedMetersPerSecond: Float = 0f,
+    val startLatitude: Double? = null,
+    val startLongitude: Double? = null,
+    val endLatitude: Double? = null,
+    val endLongitude: Double? = null,
 )
 
 class TripSessionManager {
     private val mutableState = MutableStateFlow(TripSessionState())
     val state = mutableState.asStateFlow()
+    private val completedSessionChannel = Channel<TripSessionState>(Channel.UNLIMITED)
+    val completedSessions = completedSessionChannel.receiveAsFlow()
     private var startElapsedRealtimeMillis = 0L
     private var lastSample: LocationSample? = null
 
@@ -52,12 +61,24 @@ class TripSessionManager {
         lastSample = sample
         val elapsed = (sample.elapsedRealtimeMillis - startElapsedRealtimeMillis).coerceAtLeast(current.elapsedMillis)
         val speed = sample.speedMetersPerSecond?.coerceAtLeast(0f) ?: 0f
-        updateMetrics(elapsed, distance, speed, maxOf(current.maximumSpeedMetersPerSecond, speed))
+        updateMetrics(
+            elapsedMillis = elapsed,
+            distanceMeters = distance,
+            currentSpeed = speed,
+            maximumSpeed = maxOf(current.maximumSpeedMetersPerSecond, speed),
+            sample = sample,
+        )
     }
 
-    fun end(): TripSessionState {
-        val finalState = mutableState.value.copy(isActive = false, currentSpeedMetersPerSecond = 0f)
+    fun end(endTimeMillis: Long = System.currentTimeMillis()): TripSessionState {
+        val current = mutableState.value
+        val finalState = current.copy(
+            isActive = false,
+            endTimeMillis = endTimeMillis,
+            currentSpeedMetersPerSecond = 0f,
+        )
         mutableState.value = finalState
+        if (current.isActive) completedSessionChannel.trySend(finalState)
         lastSample = null
         return finalState
     }
@@ -67,6 +88,7 @@ class TripSessionManager {
         distanceMeters: Double = mutableState.value.distanceMeters,
         currentSpeed: Float = mutableState.value.currentSpeedMetersPerSecond,
         maximumSpeed: Float = mutableState.value.maximumSpeedMetersPerSecond,
+        sample: LocationSample? = null,
     ) {
         val average = if (elapsedMillis > 0) distanceMeters / (elapsedMillis / 1_000.0) else 0.0
         mutableState.value = mutableState.value.copy(
@@ -75,6 +97,10 @@ class TripSessionManager {
             currentSpeedMetersPerSecond = currentSpeed,
             averageSpeedMetersPerSecond = average,
             maximumSpeedMetersPerSecond = maximumSpeed,
+            startLatitude = mutableState.value.startLatitude ?: sample?.latitude,
+            startLongitude = mutableState.value.startLongitude ?: sample?.longitude,
+            endLatitude = sample?.latitude ?: mutableState.value.endLatitude,
+            endLongitude = sample?.longitude ?: mutableState.value.endLongitude,
         )
     }
 

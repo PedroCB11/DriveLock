@@ -87,7 +87,12 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
             )
         }
         composable(Route.ActiveDrive.path) { ActiveDriveScreen(drivingState, drivingViewModel::endTrip) }
-        composable(Route.TripSummary.path) { TripSummaryScreen { drivingViewModel.reset(); navController.navigate(Route.Home.path) { popUpTo(Route.Home.path) { inclusive = true } } } }
+        composable(Route.TripSummary.path) {
+            TripSummaryScreen(drivingState) {
+                drivingViewModel.reset()
+                navController.navigate(Route.Home.path) { popUpTo(Route.Home.path) { inclusive = true } }
+            }
+        }
         composable(Route.History.path) {
             val historyViewModel: HistoryViewModel = viewModel(factory = HistoryViewModel.Factory(container.tripRepository))
             val trips by historyViewModel.trips.collectAsStateWithLifecycle()

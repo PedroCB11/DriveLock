@@ -20,6 +20,8 @@ class DrivingViewModel(
             elapsedMinutes = (session.elapsedMillis / 60_000).toInt(),
             distanceKm = session.distanceMeters / 1_000,
             speedKph = session.currentSpeedMetersPerSecond * 3.6,
+            averageSpeedKph = session.averageSpeedMetersPerSecond * 3.6,
+            maximumSpeedKph = session.maximumSpeedMetersPerSecond * 3.6,
         )
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DrivingUiState())

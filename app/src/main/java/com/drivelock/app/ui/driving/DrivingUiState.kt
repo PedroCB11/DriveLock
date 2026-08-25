@@ -8,5 +8,7 @@ data class DrivingUiState(
     val elapsedMinutes: Int = 0,
     val distanceKm: Double = 0.0,
     val speedKph: Double = 0.0,
+    val averageSpeedKph: Double = 0.0,
+    val maximumSpeedKph: Double = 0.0,
     val driverDecision: DriverDecision = DriverDecision.UNKNOWN,
 )
