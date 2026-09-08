@@ -7,6 +7,17 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -21,11 +32,15 @@ import com.drivelock.app.ui.history.HistoryScreen
 import com.drivelock.app.ui.history.HistoryViewModel
 import com.drivelock.app.ui.home.HomeScreen
 import com.drivelock.app.ui.home.HomeViewModel
+import com.drivelock.app.ui.onboarding.HowItWorksScreen
+import com.drivelock.app.ui.onboarding.PrivacyScreen
+import com.drivelock.app.ui.onboarding.WelcomeScreen
 import com.drivelock.app.ui.settings.SettingsScreen
 import com.drivelock.app.ui.summary.TripSummaryScreen
 
 @Composable
 fun DriveLockNavHost(navController: NavHostController, container: AppContainer) {
+    var onboardingComplete by rememberSaveable { mutableStateOf(container.onboardingPreferences.isComplete()) }
     val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(container.tripRepository, container.detectionEngine))
     val drivingViewModel: DrivingViewModel = viewModel(
         factory = DrivingViewModel.Factory(container.detectionEngine, container.tripSessionManager),
@@ -42,9 +57,12 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
         drivingViewModel.confirmDriver()
     }
 
-    LaunchedEffect(Unit) { homeViewModel.startMonitoring() }
+    LaunchedEffect(onboardingComplete) {
+        if (onboardingComplete) homeViewModel.startMonitoring()
+    }
 
-    LaunchedEffect(homeState.driveState) {
+    LaunchedEffect(homeState.driveState, onboardingComplete) {
+        if (!onboardingComplete) return@LaunchedEffect
         when (homeState.driveState) {
             DriveState.CONFIRMING_DRIVER -> navController.navigate(Route.DrivingConfirmation.path) { launchSingleTop = true }
             DriveState.DRIVING -> navController.navigate(Route.ActiveDrive.path) { launchSingleTop = true }
@@ -53,7 +71,29 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
         }
     }
 
-    NavHost(navController, startDestination = Route.Home.path) {
+    NavHost(
+        navController = navController,
+        startDestination = if (onboardingComplete) Route.Home.path else Route.OnboardingWelcome.path,
+        enterTransition = { forwardEnterTransition() },
+        exitTransition = { forwardExitTransition() },
+        popEnterTransition = { backwardEnterTransition() },
+        popExitTransition = { backwardExitTransition() },
+    ) {
+        composable(Route.OnboardingWelcome.path) {
+            WelcomeScreen { navController.navigate(Route.OnboardingHowItWorks.path) }
+        }
+        composable(Route.OnboardingHowItWorks.path) {
+            HowItWorksScreen { navController.navigate(Route.OnboardingPrivacy.path) }
+        }
+        composable(Route.OnboardingPrivacy.path) {
+            PrivacyScreen {
+                container.onboardingPreferences.markComplete()
+                onboardingComplete = true
+                navController.navigate(Route.Home.path) {
+                    popUpTo(Route.OnboardingWelcome.path) { inclusive = true }
+                }
+            }
+        }
         composable(Route.Home.path) {
             HomeScreen(
                 homeState,
@@ -101,3 +141,17 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
         composable(Route.Settings.path) { SettingsScreen() }
     }
 }
+
+private const val TRANSITION_DURATION_MILLIS = 380
+
+private fun forwardEnterTransition(): EnterTransition =
+    fadeIn(tween(260)) + slideInHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { it / 5 }
+
+private fun forwardExitTransition(): ExitTransition =
+    fadeOut(tween(220)) + slideOutHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { -it / 8 }
+
+private fun backwardEnterTransition(): EnterTransition =
+    fadeIn(tween(260)) + slideInHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { -it / 8 }
+
+private fun backwardExitTransition(): ExitTransition =
+    fadeOut(tween(220)) + slideOutHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { it / 5 }

@@ -12,11 +12,13 @@ import com.drivelock.app.domain.repository.TripRepository
 import com.drivelock.app.tracking.AndroidTripTrackingController
 import com.drivelock.app.tracking.CompletedTripRecorder
 import com.drivelock.app.tracking.TripSessionManager
+import com.drivelock.app.ui.onboarding.OnboardingPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
 class AppContainer(context: Context) {
+    val onboardingPreferences = OnboardingPreferences(context.applicationContext)
     private val database = Room.databaseBuilder(
         context.applicationContext,
         DriveLockDatabase::class.java,

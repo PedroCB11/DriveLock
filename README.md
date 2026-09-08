@@ -17,6 +17,8 @@ DriveLock combines Android Activity Recognition with short, foreground-only spee
 - Probable trip-end detection combining vehicle exit and sustained low speed
 - Automatic Room persistence for finalized trip statistics and endpoints
 - Real trip summary and chronological history values
+- Three-step, locally persisted onboarding with progressive permission guidance
+- Refined Material 3 visual identity and smooth directional screen transitions
 - Debounced `IN_VEHICLE` transitions that lead to driver confirmation
 - A Room database and repository boundary for locally saved trips
 - No background-location, network, or account permissions
@@ -50,14 +52,13 @@ app/src/main/java/com/drivelock/app
 
 ## Current Status
 
-Milestone 6 trip persistence is implemented. Finalized foreground sessions are converted to domain trips and saved to Room by an application-scoped recorder, independent of Compose lifecycle. Summary and history display real duration, distance, and speed values.
+Milestone 7 onboarding and experience polish are implemented. New users receive a concise introduction to operation and privacy before monitoring begins. A calmer visual system, clearer home status, localized Portuguese copy, and smooth directional transitions now provide a more trustworthy first-use experience.
 
 ## Roadmap
 
-1. Add onboarding and production permission guidance.
-2. Improve empty, error, and permission-denied states.
-3. Refine detection diagnostics through real-vehicle testing.
-4. Incrementally explore distraction-reduction features permitted by Android.
+1. Improve error and permanently denied-permission states.
+2. Refine detection diagnostics through real-vehicle testing.
+3. Incrementally explore distraction-reduction features permitted by Android.
 
 ## Build
 
