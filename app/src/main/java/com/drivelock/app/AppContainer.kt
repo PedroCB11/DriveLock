@@ -3,6 +3,7 @@ package com.drivelock.app
 import android.content.Context
 import androidx.room.Room
 import com.drivelock.app.data.local.DriveLockDatabase
+import com.drivelock.app.data.local.MIGRATION_1_2
 import com.drivelock.app.data.repository.TripRepositoryImpl
 import com.drivelock.app.detection.RealDrivingDetectionEngine
 import com.drivelock.app.detection.TripEndDetector
@@ -14,6 +15,7 @@ import com.drivelock.app.tracking.CompletedTripRecorder
 import com.drivelock.app.tracking.TripSessionManager
 import com.drivelock.app.ui.onboarding.OnboardingPreferences
 import com.drivelock.app.ui.settings.SettingsPreferences
+import com.drivelock.app.notifications.NotificationControlPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,11 +23,12 @@ import kotlinx.coroutines.SupervisorJob
 class AppContainer(context: Context) {
     val onboardingPreferences = OnboardingPreferences(context.applicationContext)
     val settingsPreferences = SettingsPreferences(context.applicationContext)
+    val notificationControlPreferences = NotificationControlPreferences(context.applicationContext)
     private val database = Room.databaseBuilder(
         context.applicationContext,
         DriveLockDatabase::class.java,
         "drivelock.db",
-    ).build()
+    ).addMigrations(MIGRATION_1_2).build()
 
     val tripRepository: TripRepository = TripRepositoryImpl(database.tripDao())
     val activityRecognitionDataSource = PlayServicesActivityRecognitionDataSource(context.applicationContext)

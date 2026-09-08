@@ -23,6 +23,7 @@ data class TripSessionState(
     val startLongitude: Double? = null,
     val endLatitude: Double? = null,
     val endLongitude: Double? = null,
+    val blockedNotifications: Map<String, Int> = emptyMap(),
 )
 
 class TripSessionManager {
@@ -81,6 +82,13 @@ class TripSessionManager {
         if (current.isActive) completedSessionChannel.trySend(finalState)
         lastSample = null
         return finalState
+    }
+
+    fun recordBlockedNotification(packageName: String) {
+        if (!mutableState.value.isActive) return
+        val updated = mutableState.value.blockedNotifications.toMutableMap()
+        updated[packageName] = (updated[packageName] ?: 0) + 1
+        mutableState.value = mutableState.value.copy(blockedNotifications = updated)
     }
 
     private fun updateMetrics(

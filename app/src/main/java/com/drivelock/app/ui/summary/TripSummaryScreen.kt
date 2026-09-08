@@ -2,6 +2,7 @@ package com.drivelock.app.ui.summary
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -14,9 +15,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.drivelock.app.R
 import com.drivelock.app.ui.driving.DrivingUiState
+import com.drivelock.app.ui.components.BackButton
 
 @Composable
 fun TripSummaryScreen(state: DrivingUiState, onDone: () -> Unit) {
+    Box(Modifier.fillMaxSize()) {
     Column(
         Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -28,5 +31,7 @@ fun TripSummaryScreen(state: DrivingUiState, onDone: () -> Unit) {
         Text("${stringResource(R.string.average_speed)}: %.0f km/h".format(state.averageSpeedKph))
         Text("${stringResource(R.string.maximum_speed)}: %.0f km/h".format(state.maximumSpeedKph))
         Button(onClick = onDone) { Text(stringResource(R.string.done)) }
+    }
+    BackButton(onDone, Modifier.align(Alignment.TopEnd).padding(top = 28.dp, end = 20.dp))
     }
 }

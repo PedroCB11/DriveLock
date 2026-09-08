@@ -43,6 +43,19 @@ class TripSessionManagerTest {
         assertEquals(60_000, finalState.elapsedMillis)
         assertEquals(0f, finalState.currentSpeedMetersPerSecond)
     }
+
+    @Test fun `counts blocked notifications by app only during active trip`() {
+        val manager = TripSessionManager()
+        manager.recordBlockedNotification("before.trip")
+        manager.start(10_000, 1_000)
+        manager.recordBlockedNotification("com.chat")
+        manager.recordBlockedNotification("com.chat")
+        manager.recordBlockedNotification("com.social")
+
+        val finalState = manager.end()
+
+        assertEquals(mapOf("com.chat" to 2, "com.social" to 1), finalState.blockedNotifications)
+    }
 }
 
 private fun sample(latitude: Double, time: Long, speed: Float, accuracy: Float = 10f) = LocationSample(

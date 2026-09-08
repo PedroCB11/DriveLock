@@ -22,6 +22,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -41,6 +45,7 @@ import com.drivelock.app.ui.onboarding.PrivacyScreen
 import com.drivelock.app.ui.onboarding.WelcomeScreen
 import com.drivelock.app.ui.settings.SettingsScreen
 import com.drivelock.app.ui.settings.SettingsViewModel
+import com.drivelock.app.ui.settings.NotificationAppsScreen
 import com.drivelock.app.ui.summary.TripSummaryScreen
 
 @Composable
@@ -79,6 +84,7 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
 
     NavHost(
         navController = navController,
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         startDestination = if (onboardingComplete) Route.Home.path else Route.OnboardingWelcome.path,
         enterTransition = { forwardEnterTransition() },
         exitTransition = { forwardExitTransition() },
@@ -105,6 +111,7 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
                 homeState,
                 { navController.navigate(Route.History.path) },
                 { navController.navigate(Route.Settings.path) },
+                { navController.navigate(Route.NotificationApps.path) },
                 {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         activityPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
@@ -132,7 +139,9 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
                 onPassenger = { drivingViewModel.markPassenger(); navController.popBackStack(Route.Home.path, false) },
             )
         }
-        composable(Route.ActiveDrive.path) { ActiveDriveScreen(drivingState, drivingViewModel::endTrip) }
+        composable(Route.ActiveDrive.path) {
+            ActiveDriveScreen(drivingState, drivingViewModel::endTrip) { navController.navigate(Route.Home.path) { launchSingleTop = true } }
+        }
         composable(Route.TripSummary.path) {
             TripSummaryScreen(drivingState) {
                 drivingViewModel.reset()
@@ -142,7 +151,7 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
         composable(Route.History.path) {
             val historyViewModel: HistoryViewModel = viewModel(factory = HistoryViewModel.Factory(container.tripRepository))
             val trips by historyViewModel.trips.collectAsStateWithLifecycle()
-            HistoryScreen(trips)
+            HistoryScreen(trips) { navController.popBackStack() }
         }
         composable(Route.Settings.path) {
             val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory(container.tripRepository))
@@ -152,6 +161,8 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
                 themeMode = themeMode,
                 historyCleared = historyCleared,
                 onThemeModeChange = container.settingsPreferences::setThemeMode,
+                onNotificationApps = { navController.navigate(Route.NotificationApps.path) },
+                onBack = { navController.popBackStack() },
                 onOpenPermissions = {
                     context.startActivity(
                         Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
@@ -168,19 +179,28 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
                 onHistoryClearedConsumed = settingsViewModel::consumeHistoryCleared,
             )
         }
+        composable(Route.NotificationApps.path) {
+            val selectedPackages by container.notificationControlPreferences.selectedPackages.collectAsStateWithLifecycle()
+            NotificationAppsScreen(
+                context = context,
+                selectedPackages = selectedPackages,
+                onToggle = container.notificationControlPreferences::toggle,
+                onBack = { navController.popBackStack() },
+            )
+        }
     }
 }
 
 private const val TRANSITION_DURATION_MILLIS = 380
 
 private fun forwardEnterTransition(): EnterTransition =
-    fadeIn(tween(260)) + slideInHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { it / 5 }
+    slideInHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { it }
 
 private fun forwardExitTransition(): ExitTransition =
-    fadeOut(tween(220)) + slideOutHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { -it / 8 }
+    slideOutHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { -it / 4 }
 
 private fun backwardEnterTransition(): EnterTransition =
-    fadeIn(tween(260)) + slideInHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { -it / 8 }
+    slideInHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { -it / 4 }
 
 private fun backwardExitTransition(): ExitTransition =
-    fadeOut(tween(220)) + slideOutHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { it / 5 }
+    slideOutHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { it }

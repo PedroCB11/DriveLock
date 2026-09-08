@@ -21,6 +21,13 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -36,11 +43,14 @@ fun HomeScreen(
     state: HomeUiState,
     onHistory: () -> Unit,
     onSettings: () -> Unit,
+    onNotificationApps: () -> Unit,
     onRequestActivityPermission: () -> Unit,
     onRequestLocationPermission: () -> Unit,
     onReset: () -> Unit,
 ) {
+    var menuExpanded by remember { mutableStateOf(false) }
     Surface(color = MaterialTheme.colorScheme.background) {
+      Box(Modifier.fillMaxSize()) {
       Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 36.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineLarge)
         Text(stringResource(R.string.home_tagline), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodyLarge)
@@ -90,10 +100,23 @@ fun HomeScreen(
                 }
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(onClick = onHistory, modifier = Modifier.weight(1f).height(54.dp)) { Text(stringResource(R.string.history)) }
-            OutlinedButton(onClick = onSettings, modifier = Modifier.weight(1f).height(54.dp)) { Text(stringResource(R.string.settings)) }
-        }
+      }
+      Box(Modifier.align(Alignment.TopEnd).padding(top = 28.dp, end = 20.dp)) {
+          FilledTonalIconButton(onClick = { menuExpanded = true }) { Text("⚙") }
+          DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
+              DropdownMenuItem(text = { Text(stringResource(R.string.history)) }, onClick = { menuExpanded = false; onHistory() })
+              DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = { menuExpanded = false; onSettings() })
+              DropdownMenuItem(
+                  text = {
+                      Column {
+                          Text(stringResource(R.string.notification_apps_menu))
+                          Text(stringResource(R.string.notification_apps_menu_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                      }
+                  },
+                  onClick = { menuExpanded = false; onNotificationApps() },
+              )
+          }
+      }
       }
     }
 }

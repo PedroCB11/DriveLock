@@ -3,6 +3,7 @@ package com.drivelock.app.ui.settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,12 +29,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.drivelock.app.R
+import com.drivelock.app.ui.components.BackButton
 
 @Composable
 fun SettingsScreen(
     themeMode: ThemeMode,
     historyCleared: Boolean,
     onThemeModeChange: (ThemeMode) -> Unit,
+    onNotificationApps: () -> Unit,
+    onBack: () -> Unit,
     onOpenPermissions: () -> Unit,
     onReviewOnboarding: () -> Unit,
     onClearHistory: () -> Unit,
@@ -43,6 +47,7 @@ fun SettingsScreen(
     var showClearDialog by remember { mutableStateOf(false) }
 
     Surface(color = MaterialTheme.colorScheme.background) {
+      Box(Modifier.fillMaxSize()) {
         Column(
             Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp, vertical = 36.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp),
@@ -55,6 +60,8 @@ fun SettingsScreen(
                 SettingsItem(R.string.settings_review_onboarding, R.string.settings_review_onboarding_description, onReviewOnboarding)
             }
             SettingsSection(R.string.settings_privacy_security) {
+                SettingsItem(R.string.notification_apps_menu, R.string.notification_apps_settings_description, onNotificationApps)
+                HorizontalDivider()
                 SettingsItem(R.string.settings_permissions, R.string.settings_permissions_description, onOpenPermissions)
                 HorizontalDivider()
                 SettingsItem(R.string.settings_local_data, R.string.settings_local_data_description)
@@ -68,6 +75,8 @@ fun SettingsScreen(
                 SettingsItem(R.string.settings_privacy_title, R.string.settings_privacy_description)
             }
         }
+        BackButton(onBack, Modifier.align(Alignment.TopEnd).padding(top = 28.dp, end = 20.dp))
+      }
     }
 
     if (showThemeDialog) ThemeDialog(themeMode, onThemeModeChange) { showThemeDialog = false }

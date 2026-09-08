@@ -2,6 +2,7 @@ package com.drivelock.app.ui.driving
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,10 +18,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.drivelock.app.R
+import com.drivelock.app.ui.components.BackButton
 
 @Composable
 fun DrivingConfirmationScreen(onDriver: () -> Unit, onPassenger: () -> Unit) {
     BackHandler(onBack = onPassenger)
+    Box(Modifier.fillMaxSize()) {
     Column(
         Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -37,10 +40,13 @@ fun DrivingConfirmationScreen(onDriver: () -> Unit, onPassenger: () -> Unit) {
         Button(onClick = onDriver, Modifier.fillMaxWidth()) { Text(stringResource(R.string.yes_driving)) }
         OutlinedButton(onClick = onPassenger, Modifier.fillMaxWidth().padding(top = 12.dp)) { Text(stringResource(R.string.passenger)) }
     }
+    BackButton(onPassenger, Modifier.align(Alignment.TopEnd).padding(top = 28.dp, end = 20.dp))
+    }
 }
 
 @Composable
-fun ActiveDriveScreen(state: DrivingUiState, onEndTrip: () -> Unit) {
+fun ActiveDriveScreen(state: DrivingUiState, onEndTrip: () -> Unit, onBack: () -> Unit) {
+    Box(Modifier.fillMaxSize()) {
     Column(
         Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -54,5 +60,7 @@ fun ActiveDriveScreen(state: DrivingUiState, onEndTrip: () -> Unit) {
         Text(stringResource(R.string.drive_safely), textAlign = TextAlign.Center)
         Text("%02d min     %.1f km".format(state.elapsedMinutes, state.distanceKm), style = MaterialTheme.typography.titleLarge)
         OutlinedButton(onClick = onEndTrip) { Text(stringResource(R.string.end_trip)) }
+    }
+    BackButton(onBack, Modifier.align(Alignment.TopEnd).padding(top = 28.dp, end = 20.dp))
     }
 }

@@ -2,6 +2,7 @@ package com.drivelock.app.ui.history
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,18 +10,22 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.drivelock.app.R
 import com.drivelock.app.domain.model.Trip
+import com.drivelock.app.ui.components.BackButton
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 @Composable
-fun HistoryScreen(trips: List<Trip>) {
+fun HistoryScreen(trips: List<Trip>, onBack: () -> Unit) {
+  val context = LocalContext.current
+  Box(Modifier.fillMaxSize()) {
     if (trips.isEmpty()) {
         Column(
             Modifier.fillMaxSize().padding(24.dp),
@@ -42,10 +47,26 @@ fun HistoryScreen(trips: List<Trip>) {
                             trip.averageSpeedKph ?: 0.0,
                         ),
                     )
+                    if (trip.blockedNotifications.isNotEmpty()) {
+                        Text(
+                            stringResource(R.string.notifications_avoided, trip.blockedNotifications.values.sum()),
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.titleSmall,
+                            modifier = Modifier.padding(top = 6.dp),
+                        )
+                        trip.blockedNotifications.forEach { (packageName, count) ->
+                            val label = runCatching {
+                                context.packageManager.getApplicationLabel(context.packageManager.getApplicationInfo(packageName, 0)).toString()
+                            }.getOrDefault(packageName)
+                            Text(stringResource(R.string.notification_app_count, label, count), style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
                 }
             }
         }
     }
+    BackButton(onBack, Modifier.align(Alignment.TopEnd).padding(top = 28.dp, end = 20.dp))
+  }
 }
 
 private fun formatStartTime(timestamp: Long): String =

@@ -44,6 +44,7 @@ fun TripSessionState.toTrip(): Trip? {
         startLongitude = startLongitude,
         endLatitude = endLatitude,
         endLongitude = endLongitude,
+        blockedNotifications = blockedNotifications,
     )
 }
 

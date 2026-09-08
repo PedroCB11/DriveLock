@@ -12,5 +12,5 @@ data class Trip(
     val startLongitude: Double? = null,
     val endLatitude: Double? = null,
     val endLongitude: Double? = null,
+    val blockedNotifications: Map<String, Int> = emptyMap(),
 )
-

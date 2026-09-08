@@ -97,4 +97,16 @@
     <string name="trip_notification_title">DriveLock ativo</string>
     <string name="trip_notification_text">%1$d min · %2$.1f km</string>
     <string name="notification_permission_explanation">Durante a viagem, uma notificação contínua informa que o acompanhamento está ativo.</string>
+    <string name="notification_apps_menu">Limitar notificações</string>
+    <string name="notification_apps_menu_hint">Escolha os apps silenciados ao dirigir</string>
+    <string name="notification_apps_settings_description">Defina claramente quais aplicativos serão silenciados durante as viagens.</string>
+    <string name="notification_apps_title">Notificações ao dirigir</string>
+    <string name="notification_apps_description">Selecione os aplicativos cujas notificações devem ser dispensadas automaticamente somente durante uma viagem ativa.</string>
+    <string name="notification_privacy_title">Privacidade em primeiro lugar</string>
+    <string name="notification_privacy_description">O DriveLock não lê nem armazena títulos, mensagens, remetentes ou qualquer conteúdo. A notificação é dispensada imediatamente. Salvamos localmente apenas o nome do aplicativo e a quantidade evitada para compor seu histórico.</string>
+    <string name="enable_notification_access">Ativar acesso especial</string>
+    <string name="choose_apps">Aplicativos instalados</string>
+    <string name="notifications_avoided">%1$d notificações evitadas</string>
+    <string name="notification_app_count">%1$s: %2$d</string>
+    <string name="notification_listener_name">Controle de notificações do DriveLock</string>
 </resources>

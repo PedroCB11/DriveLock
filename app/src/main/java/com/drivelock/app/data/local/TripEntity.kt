@@ -17,15 +17,26 @@ data class TripEntity(
     val startLongitude: Double?,
     val endLatitude: Double?,
     val endLongitude: Double?,
+    val notificationSummary: String = "",
 )
 
 fun TripEntity.toDomain() = Trip(
     id, startTime, endTime, durationMillis, distanceMeters, averageSpeedKph, maxSpeedKph,
-    startLatitude, startLongitude, endLatitude, endLongitude,
+    startLatitude, startLongitude, endLatitude, endLongitude, decodeNotificationSummary(notificationSummary),
 )
 
 fun Trip.toEntity() = TripEntity(
     id, startTime, endTime, durationMillis, distanceMeters, averageSpeedKph, maxSpeedKph,
-    startLatitude, startLongitude, endLatitude, endLongitude,
+    startLatitude, startLongitude, endLatitude, endLongitude, encodeNotificationSummary(blockedNotifications),
 )
 
+private fun encodeNotificationSummary(counts: Map<String, Int>): String =
+    counts.entries.joinToString(";") { "${it.key}:${it.value}" }
+
+private fun decodeNotificationSummary(value: String): Map<String, Int> = value
+    .split(';')
+    .mapNotNull { entry ->
+        val separator = entry.lastIndexOf(':')
+        if (separator <= 0) null else entry.substring(0, separator) to (entry.substring(separator + 1).toIntOrNull() ?: return@mapNotNull null)
+    }
+    .toMap()
