@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.drivelock.app.ui.settings.ThemeMode
 
 private val LightColors = lightColorScheme(
     primary = Color(0xFF087F6D),
@@ -53,9 +54,14 @@ private val DriveLockShapes = Shapes(
 )
 
 @Composable
-fun DriveLockTheme(content: @Composable () -> Unit) {
+fun DriveLockTheme(themeMode: ThemeMode = ThemeMode.SYSTEM, content: @Composable () -> Unit) {
+    val useDarkTheme = when (themeMode) {
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+    }
     MaterialTheme(
-        colorScheme = if (isSystemInDarkTheme()) DarkColors else LightColors,
+        colorScheme = if (useDarkTheme) DarkColors else LightColors,
         typography = DriveLockTypography,
         shapes = DriveLockShapes,
         content = content,

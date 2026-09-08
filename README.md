@@ -19,6 +19,7 @@ DriveLock combines Android Activity Recognition with short, foreground-only spee
 - Real trip summary and chronological history values
 - Three-step, locally persisted onboarding with progressive permission guidance
 - Refined Material 3 visual identity and smooth directional screen transitions
+- Functional settings for theme, permissions, onboarding review, and local history removal
 - Debounced `IN_VEHICLE` transitions that lead to driver confirmation
 - A Room database and repository boundary for locally saved trips
 - No background-location, network, or account permissions
@@ -52,7 +53,7 @@ app/src/main/java/com/drivelock/app
 
 ## Current Status
 
-Milestone 7 onboarding and experience polish are implemented. New users receive a concise introduction to operation and privacy before monitoring begins. A calmer visual system, clearer home status, localized Portuguese copy, and smooth directional transitions now provide a more trustworthy first-use experience.
+Milestone 8 settings are implemented. Users can choose system, light, or dark appearance; reopen Android permission management; review onboarding; inspect the local-data privacy model; and permanently clear trip history through a confirmation flow.
 
 ## Roadmap
 

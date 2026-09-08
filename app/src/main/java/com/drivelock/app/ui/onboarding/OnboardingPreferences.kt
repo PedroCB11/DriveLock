@@ -11,6 +11,10 @@ class OnboardingPreferences(context: Context) {
         preferences.edit().putBoolean(KEY_COMPLETE, true).apply()
     }
 
+    fun reset() {
+        preferences.edit().putBoolean(KEY_COMPLETE, false).apply()
+    }
+
     private companion object {
         const val PREFERENCES_NAME = "drivelock_onboarding"
         const val KEY_COMPLETE = "onboarding_complete"

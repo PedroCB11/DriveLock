@@ -2,6 +2,9 @@ package com.drivelock.app.navigation
 
 import android.Manifest
 import android.os.Build
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -10,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -36,10 +40,12 @@ import com.drivelock.app.ui.onboarding.HowItWorksScreen
 import com.drivelock.app.ui.onboarding.PrivacyScreen
 import com.drivelock.app.ui.onboarding.WelcomeScreen
 import com.drivelock.app.ui.settings.SettingsScreen
+import com.drivelock.app.ui.settings.SettingsViewModel
 import com.drivelock.app.ui.summary.TripSummaryScreen
 
 @Composable
 fun DriveLockNavHost(navController: NavHostController, container: AppContainer) {
+    val context = LocalContext.current
     var onboardingComplete by rememberSaveable { mutableStateOf(container.onboardingPreferences.isComplete()) }
     val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(container.tripRepository, container.detectionEngine))
     val drivingViewModel: DrivingViewModel = viewModel(
@@ -138,7 +144,30 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
             val trips by historyViewModel.trips.collectAsStateWithLifecycle()
             HistoryScreen(trips)
         }
-        composable(Route.Settings.path) { SettingsScreen() }
+        composable(Route.Settings.path) {
+            val settingsViewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory(container.tripRepository))
+            val themeMode by container.settingsPreferences.themeMode.collectAsStateWithLifecycle()
+            val historyCleared by settingsViewModel.historyCleared.collectAsStateWithLifecycle()
+            SettingsScreen(
+                themeMode = themeMode,
+                historyCleared = historyCleared,
+                onThemeModeChange = container.settingsPreferences::setThemeMode,
+                onOpenPermissions = {
+                    context.startActivity(
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
+                    )
+                },
+                onReviewOnboarding = {
+                    container.onboardingPreferences.reset()
+                    onboardingComplete = false
+                    navController.navigate(Route.OnboardingWelcome.path) {
+                        popUpTo(Route.Home.path) { inclusive = true }
+                    }
+                },
+                onClearHistory = settingsViewModel::clearHistory,
+                onHistoryClearedConsumed = settingsViewModel::consumeHistoryCleared,
+            )
+        }
     }
 }
 
