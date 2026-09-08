@@ -4,12 +4,12 @@ A local-first Android driving-safety application designed to detect when the use
 
 ## About
 
-DriveLock combines Android Activity Recognition with short, foreground-only speed verification, asks whether the user is driving, and provides the foundation for later trip tracking and distraction reduction.
+DriveLock uses continuous high-accuracy GPS speed monitoring in a foreground service, asks whether the user is driving after crossing 20 km/h, and tracks confirmed trips while reducing selected notification distractions.
 
 ## Current MVP
 
-- Permission-aware, low-power vehicle transition monitoring
-- Foreground Fused Location speed verification after a vehicle transition
+- Permission-aware GPS speed monitoring that continues with the screen off
+- Foreground services backed by Fused Location high-accuracy updates
 - Driver confirmation, active-drive, trip-summary, history, and settings screens
 - Session-scoped driver/passenger decisions with duplicate-prompt suppression
 - Foreground trip tracking with an ongoing notification
@@ -22,17 +22,17 @@ DriveLock combines Android Activity Recognition with short, foreground-only spee
 - Functional settings for theme, permissions, onboarding review, and local history removal
 - Per-app notification limiting during active trips, with privacy-preserving local counts
 - Trip history breakdown of avoided notifications by application
-- Debounced `IN_VEHICLE` transitions that lead to driver confirmation
+- Driver confirmation after measured speed exceeds 20 km/h
 - A Room database and repository boundary for locally saved trips
-- No background-location, network, or account permissions
+- No network or account permissions; location remains local to the device
 
 ## Permissions
 
-DriveLock requests Activity Recognition only after showing an in-app explanation. Precise foreground location is requested progressively, when probable vehicle movement needs speed verification. Android 13 and newer also receive a contextual notification-permission request when the user confirms they are driving. Background location is not requested.
+DriveLock progressively requests precise and background location after an in-app explanation so GPS monitoring can continue with the screen off. Android 13 and newer also receive a contextual notification-permission request when a trip begins. Notification-listener access is optional and explained separately before opening Android settings.
 
 ## How Driving Detection Works
 
-Google Play services' Activity Recognition Transition API reports low-power enter/exit changes for vehicle, walking, running, cycling, and still activities. An `IN_VEHICLE` enter temporarily starts Fused Location updates. DriveLock requires at least three accurate, ordered samples at or above 5.5 m/s over ten seconds before asking whether the user is driving. During an active trip, an `IN_VEHICLE` exit must coincide with speed at or below 1.5 m/s for 60 seconds before the trip ends; renewed speed or vehicle presence cancels that window.
+Fused Location supplies high-accuracy samples through a foreground service. DriveLock asks for driver confirmation when an accurate GPS sample exceeds 20 km/h. During an active trip, speed below that threshold starts a three-minute countdown. Any recovery above the threshold cancels it, preserving the session through traffic lights and congestion; three continuous low-speed minutes end the trip and stop continuous monitoring.
 
 ## Architecture
 
@@ -55,7 +55,7 @@ app/src/main/java/com/drivelock/app
 
 ## Current Status
 
-Milestone 9 distraction controls are implemented. Users explicitly choose which installed apps should have notifications dismissed during active trips and grant Android's special notification access themselves. DriveLock never stores notification titles, text, senders, or content: only local per-app counters are attached to completed trips and shown in history. Home navigation and directional transitions were also refined.
+Milestone 10 GPS monitoring and reactive notification controls are implemented. High-accuracy foreground services replace Activity Recognition, trips start above 20 km/h, and a cancellable three-minute low-speed window prevents traffic lights from splitting sessions. App search is debounced, notification access refreshes on resume, and navigation fades are sequenced over a solid theme background.
 
 ## Roadmap
 

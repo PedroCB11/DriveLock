@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -20,14 +21,15 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,11 +48,13 @@ import com.drivelock.app.ui.onboarding.WelcomeScreen
 import com.drivelock.app.ui.settings.SettingsScreen
 import com.drivelock.app.ui.settings.SettingsViewModel
 import com.drivelock.app.ui.settings.NotificationAppsScreen
+import com.drivelock.app.ui.settings.NotificationAppsViewModel
 import com.drivelock.app.ui.summary.TripSummaryScreen
 
 @Composable
 fun DriveLockNavHost(navController: NavHostController, container: AppContainer) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var onboardingComplete by rememberSaveable { mutableStateOf(container.onboardingPreferences.isComplete()) }
     val homeViewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory(container.tripRepository, container.detectionEngine))
     val drivingViewModel: DrivingViewModel = viewModel(
@@ -58,7 +62,7 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
     )
     val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
     val drivingState by drivingViewModel.uiState.collectAsStateWithLifecycle()
-    val activityPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
+    val backgroundLocationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         homeViewModel.startMonitoring()
     }
     val locationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
@@ -70,6 +74,13 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
 
     LaunchedEffect(onboardingComplete) {
         if (onboardingComplete) homeViewModel.startMonitoring()
+    }
+    DisposableEffect(lifecycleOwner, onboardingComplete) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && onboardingComplete) homeViewModel.startMonitoring()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     LaunchedEffect(homeState.driveState, onboardingComplete) {
@@ -113,8 +124,12 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
                 { navController.navigate(Route.Settings.path) },
                 { navController.navigate(Route.NotificationApps.path) },
                 {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        activityPermissionLauncher.launch(Manifest.permission.ACTIVITY_RECOGNITION)
+                    if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+                        backgroundLocationPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                    } else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+                        context.startActivity(
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
+                        )
                     } else {
                         homeViewModel.startMonitoring()
                     }
@@ -180,11 +195,16 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
             )
         }
         composable(Route.NotificationApps.path) {
-            val selectedPackages by container.notificationControlPreferences.selectedPackages.collectAsStateWithLifecycle()
+            val notificationAppsViewModel: NotificationAppsViewModel = viewModel(
+                factory = NotificationAppsViewModel.Factory(context, container.notificationControlPreferences),
+            )
+            val notificationAppsState by notificationAppsViewModel.uiState.collectAsStateWithLifecycle()
             NotificationAppsScreen(
                 context = context,
-                selectedPackages = selectedPackages,
-                onToggle = container.notificationControlPreferences::toggle,
+                state = notificationAppsState,
+                onQueryChange = notificationAppsViewModel::updateQuery,
+                onToggle = notificationAppsViewModel::toggle,
+                onRefreshPermission = notificationAppsViewModel::refreshPermission,
                 onBack = { navController.popBackStack() },
             )
         }
@@ -192,15 +212,17 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
 }
 
 private const val TRANSITION_DURATION_MILLIS = 380
+private const val EXIT_DURATION_MILLIS = 140
+private const val ENTER_DELAY_MILLIS = 150
 
 private fun forwardEnterTransition(): EnterTransition =
-    slideInHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { it }
+    fadeIn(tween(TRANSITION_DURATION_MILLIS - ENTER_DELAY_MILLIS, ENTER_DELAY_MILLIS, FastOutSlowInEasing))
 
 private fun forwardExitTransition(): ExitTransition =
-    slideOutHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { -it / 4 }
+    fadeOut(tween(EXIT_DURATION_MILLIS, easing = FastOutSlowInEasing))
 
 private fun backwardEnterTransition(): EnterTransition =
-    slideInHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { -it / 4 }
+    fadeIn(tween(TRANSITION_DURATION_MILLIS - ENTER_DELAY_MILLIS, ENTER_DELAY_MILLIS, FastOutSlowInEasing))
 
 private fun backwardExitTransition(): ExitTransition =
-    slideOutHorizontally(tween(TRANSITION_DURATION_MILLIS, easing = FastOutSlowInEasing)) { it }
+    fadeOut(tween(EXIT_DURATION_MILLIS, easing = FastOutSlowInEasing))

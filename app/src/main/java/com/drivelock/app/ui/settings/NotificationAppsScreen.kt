@@ -21,6 +21,14 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.OutlinedTextField
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -33,12 +41,21 @@ data class SelectableApp(val packageName: String, val label: String)
 @Composable
 fun NotificationAppsScreen(
     context: Context,
-    selectedPackages: Set<String>,
+    state: NotificationAppsUiState,
+    onQueryChange: (String) -> Unit,
     onToggle: (String) -> Unit,
+    onRefreshPermission: () -> Unit,
     onBack: () -> Unit,
 ) {
-    val apps = remember { context.launchableApps() }
-    val accessEnabled = remember(selectedPackages) { context.isNotificationAccessEnabled() }
+    var query by remember { mutableStateOf("") }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) onRefreshPermission()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     Surface(color = MaterialTheme.colorScheme.background) {
         Box(Modifier.fillMaxSize()) {
             LazyColumn(
@@ -56,7 +73,7 @@ fun NotificationAppsScreen(
                         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text(stringResource(R.string.notification_privacy_title), style = MaterialTheme.typography.titleMedium)
                             Text(stringResource(R.string.notification_privacy_description))
-                            if (!accessEnabled) {
+                            if (!state.accessEnabled) {
                                 Button(onClick = { context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)) }) {
                                     Text(stringResource(R.string.enable_notification_access))
                                 }
@@ -65,7 +82,16 @@ fun NotificationAppsScreen(
                     }
                 }
                 item { Text(stringResource(R.string.choose_apps), style = MaterialTheme.typography.titleLarge) }
-                items(apps, key = { it.packageName }) { app ->
+                item {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it; onQueryChange(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text(stringResource(R.string.search_apps)) },
+                        singleLine = true,
+                    )
+                }
+                items(state.apps, key = { it.packageName }) { app ->
                     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                         Row(
                             Modifier.fillMaxWidth().padding(16.dp),
@@ -76,7 +102,7 @@ fun NotificationAppsScreen(
                                 Text(app.label, style = MaterialTheme.typography.titleMedium)
                                 Text(app.packageName, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
                             }
-                            Switch(checked = app.packageName in selectedPackages, onCheckedChange = { onToggle(app.packageName) })
+                            Switch(checked = app.packageName in state.selectedPackages, onCheckedChange = { onToggle(app.packageName) })
                         }
                     }
                 }
@@ -85,16 +111,3 @@ fun NotificationAppsScreen(
         }
     }
 }
-
-private fun Context.launchableApps(): List<SelectableApp> {
-    val intent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
-    return packageManager.queryIntentActivities(intent, 0)
-        .map { info -> SelectableApp(info.activityInfo.packageName, info.loadLabel(packageManager).toString()) }
-        .filter { it.packageName != packageName }
-        .distinctBy { it.packageName }
-        .sortedBy { it.label.lowercase() }
-}
-
-private fun Context.isNotificationAccessEnabled(): Boolean =
-    Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
-        ?.contains(packageName) == true

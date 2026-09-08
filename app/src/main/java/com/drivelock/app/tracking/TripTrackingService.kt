@@ -52,13 +52,12 @@ class TripTrackingService : Service() {
         trackingJob = serviceScope.launch {
             container.locationDataSource.samples.collectLatest { sample ->
                 container.tripSessionManager.addLocation(sample)
-                container.tripEndDetector.onLocation(sample)
+                container.detectionEngine.onLocationSample(sample)
             }
         }
         tickerJob = serviceScope.launch {
             while (true) {
                 container.tripSessionManager.updateElapsed(SystemClock.elapsedRealtime())
-                container.tripEndDetector.tick(SystemClock.elapsedRealtime())
                 delay(1_000)
             }
         }

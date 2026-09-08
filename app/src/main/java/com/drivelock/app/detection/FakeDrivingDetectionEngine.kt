@@ -4,6 +4,7 @@ import com.drivelock.app.domain.model.DriveState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.drivelock.app.detection.location.LocationSample
 
 class FakeDrivingDetectionEngine : DrivingDetectionEngine {
     private val mutableDriveState = MutableStateFlow(DriveState.IDLE)
@@ -32,4 +33,6 @@ class FakeDrivingDetectionEngine : DrivingDetectionEngine {
     override fun endTrip() = simulateTripEnd()
     override fun onTrackingStopped() = simulateTripEnd()
     override fun reset() { mutableDriverDecision.value = DriverDecision.UNKNOWN; mutableDriveState.value = DriveState.IDLE }
+    override fun onLocationSample(sample: LocationSample) = Unit
+    override fun onMonitoringUnavailable() { mutableMonitoringState.value = MonitoringState.UNAVAILABLE }
 }

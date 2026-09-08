@@ -1,6 +1,7 @@
 package com.drivelock.app.detection
 
 import com.drivelock.app.domain.model.DriveState
+import com.drivelock.app.detection.location.LocationSample
 import kotlinx.coroutines.flow.StateFlow
 
 interface DrivingDetectionEngine {
@@ -14,14 +15,16 @@ interface DrivingDetectionEngine {
     fun endTrip()
     fun onTrackingStopped()
     fun reset()
+    fun onLocationSample(sample: LocationSample)
+    fun onMonitoringUnavailable()
 }
 
 enum class DriverDecision { UNKNOWN, DRIVER, PASSENGER }
 
 enum class MonitoringState {
     STOPPED,
-    ACTIVITY_PERMISSION_REQUIRED,
     LOCATION_PERMISSION_REQUIRED,
+    BACKGROUND_LOCATION_PERMISSION_REQUIRED,
     STARTING,
     ACTIVE,
     UNAVAILABLE,

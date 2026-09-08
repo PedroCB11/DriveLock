@@ -6,7 +6,7 @@
     <string name="onboarding_lets_go">Vamos lá!</string>
     <string name="onboarding_how_eyebrow">Simples e automático</string>
     <string name="onboarding_how_title">Você dirige. O DriveLock acompanha.</string>
-    <string name="onboarding_how_description">O app identifica um possível deslocamento, confirma se você está dirigindo e acompanha a viagem com baixo consumo de energia.</string>
+    <string name="onboarding_how_description">O app mede a velocidade por GPS, confirma se você está dirigindo após 20 km/h e acompanha a viagem mesmo com a tela apagada.</string>
     <string name="continue_action">Continuar</string>
     <string name="onboarding_privacy_eyebrow">Sua privacidade</string>
     <string name="onboarding_privacy_title">Seus dados ficam com você</string>
@@ -109,4 +109,10 @@
     <string name="notifications_avoided">%1$d notificações evitadas</string>
     <string name="notification_app_count">%1$s: %2$d</string>
     <string name="notification_listener_name">Controle de notificações do DriveLock</string>
+    <string name="search_apps">Pesquisar aplicativos</string>
+    <string name="background_location_title">Localização em segundo plano</string>
+    <string name="background_location_rationale">Para reconhecer deslocamentos com a tela apagada, permita o acesso à localização o tempo todo nas configurações do Android. O DriveLock usa somente velocidade e trajeto durante o monitoramento e não envia dados a servidores.</string>
+    <string name="monitor_notification_channel">Detecção de deslocamento</string>
+    <string name="monitor_notification_title">DriveLock preparado</string>
+    <string name="monitor_notification_text">Monitorando velocidade para reconhecer o início de uma viagem.</string>
 </resources>

@@ -44,7 +44,7 @@ fun HomeScreen(
     onHistory: () -> Unit,
     onSettings: () -> Unit,
     onNotificationApps: () -> Unit,
-    onRequestActivityPermission: () -> Unit,
+    onRequestBackgroundLocation: () -> Unit,
     onRequestLocationPermission: () -> Unit,
     onReset: () -> Unit,
 ) {
@@ -67,12 +67,12 @@ fun HomeScreen(
                 Text(stringResource(state.driveState.descriptionResource()), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        if (state.monitoringState == MonitoringState.ACTIVITY_PERMISSION_REQUIRED) {
+        if (state.monitoringState == MonitoringState.BACKGROUND_LOCATION_PERMISSION_REQUIRED) {
             Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                 Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(stringResource(R.string.activity_permission_title), style = MaterialTheme.typography.titleMedium)
-                    Text(stringResource(R.string.activity_permission_rationale))
-                    Button(onClick = onRequestActivityPermission) { Text(stringResource(R.string.allow_access)) }
+                    Text(stringResource(R.string.background_location_title), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.background_location_rationale))
+                    Button(onClick = onRequestBackgroundLocation) { Text(stringResource(R.string.allow_access)) }
                 }
             }
         } else if (state.monitoringState == MonitoringState.LOCATION_PERMISSION_REQUIRED) {

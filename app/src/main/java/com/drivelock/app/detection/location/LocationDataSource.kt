@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 interface LocationDataSource {
     val samples: Flow<LocationSample>
     fun hasPreciseLocationPermission(): Boolean
+    fun hasBackgroundLocationPermission(): Boolean
     fun start(onResult: (Result<Unit>) -> Unit)
     fun stop()
 }
