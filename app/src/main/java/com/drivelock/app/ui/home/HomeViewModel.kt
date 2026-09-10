@@ -19,6 +19,7 @@ class HomeViewModel(
 
     fun startMonitoring() = detectionEngine.startMonitoring()
     fun reset() = detectionEngine.reset()
+    fun locationPermissionDenied(permanently: Boolean) = detectionEngine.onLocationPermissionDenied(permanently)
 
     class Factory(
         private val repository: TripRepository,

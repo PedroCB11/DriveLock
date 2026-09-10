@@ -35,4 +35,8 @@ class FakeDrivingDetectionEngine : DrivingDetectionEngine {
     override fun reset() { mutableDriverDecision.value = DriverDecision.UNKNOWN; mutableDriveState.value = DriveState.IDLE }
     override fun onLocationSample(sample: LocationSample) = Unit
     override fun onMonitoringUnavailable() { mutableMonitoringState.value = MonitoringState.UNAVAILABLE }
+    override fun onLocationPermissionDenied(permanently: Boolean) {
+        mutableMonitoringState.value = if (permanently) MonitoringState.LOCATION_PERMISSION_PERMANENTLY_DENIED
+        else MonitoringState.LOCATION_PERMISSION_DENIED
+    }
 }

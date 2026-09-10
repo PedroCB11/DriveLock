@@ -16,5 +16,5 @@ fun BackButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
         onClick = onBack,
         modifier = modifier.size(40.dp).semantics { contentDescription = "Voltar" },
         shape = CircleShape,
-    ) { Text("‹") }
+    ) { Text("\u2039") }
 }

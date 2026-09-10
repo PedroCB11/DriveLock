@@ -31,7 +31,11 @@ class RealDrivingDetectionEngine(
     override fun startMonitoring() {
         if (mutableDriveState.value == DriveState.DRIVING || mutableMonitoringState.value == MonitoringState.ACTIVE) return
         if (!monitoringLocationDataSource.hasPreciseLocationPermission()) {
-            mutableMonitoringState.value = MonitoringState.LOCATION_PERMISSION_REQUIRED
+            if (mutableMonitoringState.value !in setOf(
+                    MonitoringState.LOCATION_PERMISSION_DENIED,
+                    MonitoringState.LOCATION_PERMISSION_PERMANENTLY_DENIED,
+                )
+            ) mutableMonitoringState.value = MonitoringState.LOCATION_PERMISSION_REQUIRED
             return
         }
         if (!monitoringLocationDataSource.hasBackgroundLocationPermission()) {
@@ -139,5 +143,13 @@ class RealDrivingDetectionEngine(
 
     override fun onMonitoringUnavailable() {
         mutableMonitoringState.value = MonitoringState.UNAVAILABLE
+    }
+
+    override fun onLocationPermissionDenied(permanently: Boolean) {
+        mutableMonitoringState.value = if (permanently) {
+            MonitoringState.LOCATION_PERMISSION_PERMANENTLY_DENIED
+        } else {
+            MonitoringState.LOCATION_PERMISSION_DENIED
+        }
     }
 }

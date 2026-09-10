@@ -46,6 +46,8 @@ fun HomeScreen(
     onNotificationApps: () -> Unit,
     onRequestBackgroundLocation: () -> Unit,
     onRequestLocationPermission: () -> Unit,
+    onOpenAppSettings: () -> Unit,
+    onStartMonitoring: () -> Unit,
     onReset: () -> Unit,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
@@ -83,8 +85,14 @@ fun HomeScreen(
                     Button(onClick = onRequestLocationPermission) { Text(stringResource(R.string.allow_access)) }
                 }
             }
+        } else if (state.monitoringState == MonitoringState.LOCATION_PERMISSION_DENIED) {
+            RecoveryCard(R.string.location_denied_title, R.string.location_denied_description, R.string.try_again, onRequestLocationPermission)
+        } else if (state.monitoringState == MonitoringState.LOCATION_PERMISSION_PERMANENTLY_DENIED) {
+            RecoveryCard(R.string.location_blocked_title, R.string.location_blocked_description, R.string.open_settings, onOpenAppSettings)
         } else if (state.monitoringState == MonitoringState.UNAVAILABLE) {
-            Text(stringResource(R.string.activity_recognition_unavailable), color = MaterialTheme.colorScheme.error)
+            RecoveryCard(R.string.monitoring_unavailable_title, R.string.monitoring_unavailable_description, R.string.try_again, onStartMonitoring)
+        } else if (state.monitoringState == MonitoringState.STOPPED && state.driveState == DriveState.IDLE) {
+            RecoveryCard(R.string.monitoring_stopped_title, R.string.monitoring_stopped_description, R.string.activate_monitoring, onStartMonitoring)
         }
         Text(stringResource(R.string.last_trip), style = MaterialTheme.typography.titleLarge)
         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
@@ -118,6 +126,17 @@ fun HomeScreen(
           }
       }
       }
+    }
+}
+
+@Composable
+private fun RecoveryCard(title: Int, description: Int, action: Int, onAction: () -> Unit) {
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(description), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Button(onClick = onAction) { Text(stringResource(action)) }
+        }
     }
 }
 

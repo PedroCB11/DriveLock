@@ -22,6 +22,7 @@ DriveLock uses continuous high-accuracy GPS speed monitoring in a foreground ser
 - Functional settings for theme, permissions, onboarding review, and local history removal
 - Per-app notification limiting during active trips, with privacy-preserving local counts
 - Trip history breakdown of avoided notifications by application
+- Recoverable UI states for denied, blocked, stopped, and unavailable GPS monitoring
 - Driver confirmation after measured speed exceeds 20 km/h
 - A Room database and repository boundary for locally saved trips
 - No network or account permissions; location remains local to the device
@@ -55,13 +56,12 @@ app/src/main/java/com/drivelock/app
 
 ## Current Status
 
-Milestone 10 GPS monitoring and reactive notification controls are implemented. High-accuracy foreground services replace Activity Recognition, trips start above 20 km/h, and a cancellable three-minute low-speed window prevents traffic lights from splitting sessions. App search is debounced, notification access refreshes on resume, and navigation fades are sequenced over a solid theme background.
+Milestone 11 permission and monitoring recovery is implemented. The home screen now distinguishes a regular location denial, a permanently blocked permission, a paused monitor, and an unavailable GPS service. Each state presents the appropriate retry, settings, or activation action and automatically rechecks access when the app resumes.
 
 ## Roadmap
 
-1. Improve error and permanently denied-permission states.
-2. Refine detection diagnostics through real-vehicle testing.
-3. Incrementally explore distraction-reduction features permitted by Android.
+1. Refine detection diagnostics through real-vehicle testing.
+2. Incrementally explore distraction-reduction features permitted by Android.
 
 ## Build
 

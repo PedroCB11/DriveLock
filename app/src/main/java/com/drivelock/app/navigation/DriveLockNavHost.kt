@@ -5,6 +5,8 @@ import android.os.Build
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import android.app.Activity
+import androidx.core.app.ActivityCompat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -65,8 +67,17 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
     val backgroundLocationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         homeViewModel.startMonitoring()
     }
-    val locationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-        homeViewModel.startMonitoring()
+    val locationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grants ->
+        if (grants[Manifest.permission.ACCESS_FINE_LOCATION] == true) {
+            homeViewModel.startMonitoring()
+        } else {
+            val activity = context as? Activity
+            val permanently = activity != null && !ActivityCompat.shouldShowRequestPermissionRationale(
+                activity,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+            )
+            homeViewModel.locationPermissionDenied(permanently)
+        }
     }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         drivingViewModel.confirmDriver()
@@ -139,6 +150,12 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
                         arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION),
                     )
                 },
+                {
+                    context.startActivity(
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
+                    )
+                },
+                homeViewModel::startMonitoring,
                 homeViewModel::reset,
             )
         }

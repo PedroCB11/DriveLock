@@ -53,6 +53,15 @@ class RealDrivingDetectionEngineTest {
         assertEquals(MonitoringState.BACKGROUND_LOCATION_PERMISSION_REQUIRED, engine.monitoringState.value)
     }
 
+    @Test fun `denied location distinguishes retry from system settings recovery`() = runTest {
+        val engine = RealDrivingDetectionEngine(FakeLocationSource(precise = false), this)
+        engine.onLocationPermissionDenied(permanently = false)
+        assertEquals(MonitoringState.LOCATION_PERMISSION_DENIED, engine.monitoringState.value)
+
+        engine.onLocationPermissionDenied(permanently = true)
+        assertEquals(MonitoringState.LOCATION_PERMISSION_PERMANENTLY_DENIED, engine.monitoringState.value)
+    }
+
     @Test fun `three continuous low speed minutes end active trip`() = runTest {
         val location = FakeLocationSource()
         val tracking = FakeTrackingController()

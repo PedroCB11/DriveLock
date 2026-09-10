@@ -17,6 +17,7 @@ interface DrivingDetectionEngine {
     fun reset()
     fun onLocationSample(sample: LocationSample)
     fun onMonitoringUnavailable()
+    fun onLocationPermissionDenied(permanently: Boolean)
 }
 
 enum class DriverDecision { UNKNOWN, DRIVER, PASSENGER }
@@ -24,6 +25,8 @@ enum class DriverDecision { UNKNOWN, DRIVER, PASSENGER }
 enum class MonitoringState {
     STOPPED,
     LOCATION_PERMISSION_REQUIRED,
+    LOCATION_PERMISSION_DENIED,
+    LOCATION_PERMISSION_PERMANENTLY_DENIED,
     BACKGROUND_LOCATION_PERMISSION_REQUIRED,
     STARTING,
     ACTIVE,

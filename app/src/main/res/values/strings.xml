@@ -115,4 +115,15 @@
     <string name="monitor_notification_channel">Detecção de deslocamento</string>
     <string name="monitor_notification_title">DriveLock preparado</string>
     <string name="monitor_notification_text">Monitorando velocidade para reconhecer o início de uma viagem.</string>
+    <string name="location_denied_title">Localização não autorizada</string>
+    <string name="location_denied_description">Sem a localização precisa, o DriveLock não consegue medir a velocidade. Você pode tentar novamente.</string>
+    <string name="location_blocked_title">Localização bloqueada</string>
+    <string name="location_blocked_description">A permissão foi bloqueada. Abra as configurações do aplicativo e permita a localização para recuperar o monitoramento.</string>
+    <string name="monitoring_unavailable_title">Monitoramento indisponível</string>
+    <string name="monitoring_unavailable_description">Não foi possível iniciar o GPS neste momento. Confira se a localização do aparelho está ligada e tente novamente.</string>
+    <string name="monitoring_stopped_title">Monitoramento pausado</string>
+    <string name="monitoring_stopped_description">Ative novamente para que o DriveLock reconheça seu próximo deslocamento.</string>
+    <string name="try_again">Tentar novamente</string>
+    <string name="open_settings">Abrir configurações</string>
+    <string name="activate_monitoring">Ativar monitoramento</string>
 </resources>
