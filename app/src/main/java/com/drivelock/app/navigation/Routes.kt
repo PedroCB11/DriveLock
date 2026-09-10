@@ -11,4 +11,5 @@ sealed class Route(val path: String) {
     data object History : Route("history")
     data object Settings : Route("settings")
     data object NotificationApps : Route("notification_apps")
+    data object DetectionDiagnostics : Route("detection_diagnostics")
 }

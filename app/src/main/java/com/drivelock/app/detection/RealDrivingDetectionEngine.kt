@@ -25,6 +25,13 @@ class RealDrivingDetectionEngine(
     override val monitoringState = mutableMonitoringState.asStateFlow()
     private val mutableDriverDecision = MutableStateFlow(DriverDecision.UNKNOWN)
     override val driverDecision = mutableDriverDecision.asStateFlow()
+    private val mutableDiagnostics = MutableStateFlow(
+        DetectionDiagnostics(
+            speedThresholdKph = config.minimumVehicleSpeedMetersPerSecond * 3.6,
+            stopDelaySeconds = config.tripEndStationaryDurationMillis / 1_000,
+        ),
+    )
+    override val diagnostics = mutableDiagnostics.asStateFlow()
     private var locationJob: Job? = null
     private var lowSpeedJob: Job? = null
 
@@ -52,7 +59,15 @@ class RealDrivingDetectionEngine(
     }
 
     override fun onLocationSample(sample: LocationSample) {
-        if (sample.accuracyMeters !in 0f..config.maximumLocationAccuracyMeters) return
+        val valid = sample.accuracyMeters in 0f..config.maximumLocationAccuracyMeters && sample.speedMetersPerSecond != null
+        mutableDiagnostics.value = mutableDiagnostics.value.copy(
+            speedKph = sample.speedMetersPerSecond?.times(3.6),
+            accuracyMeters = sample.accuracyMeters,
+            lastSampleElapsedRealtimeMillis = sample.elapsedRealtimeMillis,
+            acceptedSamples = mutableDiagnostics.value.acceptedSamples + if (valid) 1 else 0,
+            rejectedSamples = mutableDiagnostics.value.rejectedSamples + if (valid) 0 else 1,
+        )
+        if (!valid) return
         val speed = sample.speedMetersPerSecond ?: return
         when {
             mutableDriveState.value == DriveState.DRIVING && speed >= config.minimumVehicleSpeedMetersPerSecond -> cancelLowSpeedCountdown()
@@ -68,18 +83,22 @@ class RealDrivingDetectionEngine(
 
     private fun startTripEndCountdown() {
         if (lowSpeedJob != null) return
+        mutableDiagnostics.value = mutableDiagnostics.value.copy(lowSpeedCountdownActive = true)
         lowSpeedJob = scope.launch {
             delay(config.tripEndStationaryDurationMillis)
             lowSpeedJob = null
+            mutableDiagnostics.value = mutableDiagnostics.value.copy(lowSpeedCountdownActive = false)
             endTrip()
         }
     }
 
     private fun startPassengerResetCountdown() {
         if (lowSpeedJob != null) return
+        mutableDiagnostics.value = mutableDiagnostics.value.copy(lowSpeedCountdownActive = true)
         lowSpeedJob = scope.launch {
             delay(config.tripEndStationaryDurationMillis)
             lowSpeedJob = null
+            mutableDiagnostics.value = mutableDiagnostics.value.copy(lowSpeedCountdownActive = false)
             mutableDriverDecision.value = DriverDecision.UNKNOWN
         }
     }
@@ -87,6 +106,7 @@ class RealDrivingDetectionEngine(
     private fun cancelLowSpeedCountdown() {
         lowSpeedJob?.cancel()
         lowSpeedJob = null
+        mutableDiagnostics.value = mutableDiagnostics.value.copy(lowSpeedCountdownActive = false)
     }
 
     override fun confirmDriver() {

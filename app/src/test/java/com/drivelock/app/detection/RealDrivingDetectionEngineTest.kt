@@ -38,6 +38,8 @@ class RealDrivingDetectionEngineTest {
         location.events.emit(sample(5.5f));
         location.events.emit(sample(20f, accuracy = 100f)); runCurrent()
         assertEquals(DriveState.IDLE, engine.driveState.value)
+        assertEquals(1, engine.diagnostics.value.acceptedSamples)
+        assertEquals(1, engine.diagnostics.value.rejectedSamples)
         engine.stopMonitoring()
     }
 
@@ -81,10 +83,12 @@ class RealDrivingDetectionEngineTest {
         engine.startMonitoring(); runCurrent(); location.events.emit(sample(6f)); runCurrent(); engine.confirmDriver()
 
         engine.onLocationSample(sample(0f)); advanceTimeBy(120_000)
+        assertEquals(true, engine.diagnostics.value.lowSpeedCountdownActive)
         engine.onLocationSample(sample(8f)); advanceTimeBy(180_001); runCurrent()
 
         assertEquals(0, tracking.stopCount)
         assertEquals(DriveState.DRIVING, engine.driveState.value)
+        assertEquals(false, engine.diagnostics.value.lowSpeedCountdownActive)
         engine.stopMonitoring()
     }
 

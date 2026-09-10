@@ -126,4 +126,23 @@
     <string name="try_again">Tentar novamente</string>
     <string name="open_settings">Abrir configurações</string>
     <string name="activate_monitoring">Ativar monitoramento</string>
+    <string name="settings_support">SUPORTE E TESTES</string>
+    <string name="diagnostics_title">Diagnóstico de detecção</string>
+    <string name="diagnostics_settings_description">Acompanhe GPS, velocidade e estados durante testes reais.</string>
+    <string name="diagnostics_privacy">Esta tela não mostra nem armazena coordenadas. Os dados abaixo existem somente na memória enquanto o app está em execução.</string>
+    <string name="diagnostics_live_data">LEITURA ATUAL</string>
+    <string name="diagnostics_speed">Velocidade GPS</string>
+    <string name="diagnostics_accuracy">Precisão</string>
+    <string name="diagnostics_last_sample">Última amostra</string>
+    <string name="diagnostics_state">ESTADO DO SISTEMA</string>
+    <string name="diagnostics_monitor">Monitor</string>
+    <string name="diagnostics_trip_state">Viagem</string>
+    <string name="diagnostics_stop_window">Janela de parada</string>
+    <string name="diagnostics_inactive">INATIVA</string>
+    <string name="diagnostics_configuration">CONFIGURAÇÃO</string>
+    <string name="diagnostics_threshold">Limiar de início</string>
+    <string name="diagnostics_tolerance">Tolerância de parada</string>
+    <string name="diagnostics_seconds">%1$d segundos</string>
+    <string name="diagnostics_accepted">Amostras aceitas</string>
+    <string name="diagnostics_rejected">Amostras rejeitadas</string>
 </resources>

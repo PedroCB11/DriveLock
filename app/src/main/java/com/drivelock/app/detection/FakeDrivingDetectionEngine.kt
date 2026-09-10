@@ -13,6 +13,8 @@ class FakeDrivingDetectionEngine : DrivingDetectionEngine {
     override val monitoringState = mutableMonitoringState.asStateFlow()
     private val mutableDriverDecision = MutableStateFlow(DriverDecision.UNKNOWN)
     override val driverDecision = mutableDriverDecision.asStateFlow()
+    private val mutableDiagnostics = MutableStateFlow(DetectionDiagnostics())
+    override val diagnostics = mutableDiagnostics.asStateFlow()
 
     override fun startMonitoring() { mutableMonitoringState.value = MonitoringState.ACTIVE }
     override fun stopMonitoring() { mutableMonitoringState.value = MonitoringState.STOPPED; reset() }

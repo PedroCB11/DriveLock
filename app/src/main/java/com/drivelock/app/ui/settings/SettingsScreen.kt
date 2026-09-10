@@ -37,6 +37,7 @@ fun SettingsScreen(
     historyCleared: Boolean,
     onThemeModeChange: (ThemeMode) -> Unit,
     onNotificationApps: () -> Unit,
+    onDiagnostics: () -> Unit,
     onBack: () -> Unit,
     onOpenPermissions: () -> Unit,
     onReviewOnboarding: () -> Unit,
@@ -68,6 +69,9 @@ fun SettingsScreen(
             }
             SettingsSection(R.string.settings_data) {
                 SettingsItem(R.string.settings_clear_history, R.string.settings_clear_history_description) { showClearDialog = true }
+            }
+            SettingsSection(R.string.settings_support) {
+                SettingsItem(R.string.diagnostics_title, R.string.diagnostics_settings_description, onDiagnostics)
             }
             SettingsSection(R.string.settings_about) {
                 SettingsItem(R.string.app_name, R.string.settings_version)

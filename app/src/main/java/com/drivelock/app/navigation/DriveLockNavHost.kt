@@ -51,6 +51,7 @@ import com.drivelock.app.ui.settings.SettingsScreen
 import com.drivelock.app.ui.settings.SettingsViewModel
 import com.drivelock.app.ui.settings.NotificationAppsScreen
 import com.drivelock.app.ui.settings.NotificationAppsViewModel
+import com.drivelock.app.ui.settings.DetectionDiagnosticsScreen
 import com.drivelock.app.ui.summary.TripSummaryScreen
 
 @Composable
@@ -194,6 +195,7 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
                 historyCleared = historyCleared,
                 onThemeModeChange = container.settingsPreferences::setThemeMode,
                 onNotificationApps = { navController.navigate(Route.NotificationApps.path) },
+                onDiagnostics = { navController.navigate(Route.DetectionDiagnostics.path) },
                 onBack = { navController.popBackStack() },
                 onOpenPermissions = {
                     context.startActivity(
@@ -222,6 +224,15 @@ fun DriveLockNavHost(navController: NavHostController, container: AppContainer) 
                 onQueryChange = notificationAppsViewModel::updateQuery,
                 onToggle = notificationAppsViewModel::toggle,
                 onRefreshPermission = notificationAppsViewModel::refreshPermission,
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(Route.DetectionDiagnostics.path) {
+            val diagnostics by container.detectionEngine.diagnostics.collectAsStateWithLifecycle()
+            DetectionDiagnosticsScreen(
+                diagnostics = diagnostics,
+                monitoringState = homeState.monitoringState,
+                driveState = homeState.driveState,
                 onBack = { navController.popBackStack() },
             )
         }

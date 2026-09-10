@@ -8,6 +8,7 @@ interface DrivingDetectionEngine {
     val driveState: StateFlow<DriveState>
     val monitoringState: StateFlow<MonitoringState>
     val driverDecision: StateFlow<DriverDecision>
+    val diagnostics: StateFlow<DetectionDiagnostics>
     fun startMonitoring()
     fun stopMonitoring()
     fun confirmDriver()
