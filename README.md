@@ -24,6 +24,7 @@ DriveLock uses continuous high-accuracy GPS speed monitoring in a foreground ser
 - Trip history breakdown of avoided notifications by application
 - Recoverable UI states for denied, blocked, stopped, and unavailable GPS monitoring
 - Privacy-safe live detection diagnostics for real-vehicle calibration
+- Local safety-impact dashboard with aggregate trips, time, distance, and avoided interruptions
 - Driver confirmation after measured speed exceeds 20 km/h
 - A Room database and repository boundary for locally saved trips
 - No network or account permissions; location remains local to the device
@@ -57,7 +58,7 @@ app/src/main/java/com/drivelock/app
 
 ## Current Status
 
-Milestone 12 detection diagnostics are implemented. A privacy-safe screen exposes live GPS speed, accuracy, sample freshness, accepted/rejected sample counts, monitoring and trip states, configured thresholds, and the three-minute stop-window state without displaying or persisting coordinates.
+Milestone 13 safety impact is implemented. History now summarizes total trips, driving time, distance, and avoided notifications, while each trip presents a clearer local breakdown. The latest-trip card also surfaces its avoided interruptions, making DriveLock's benefit visible without accounts or analytics servers.
 
 ## Roadmap
 

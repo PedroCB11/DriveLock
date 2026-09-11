@@ -105,6 +105,13 @@ fun HomeScreen(
                     val minutes = ((trip.durationMillis ?: 0L) / 60_000L).coerceAtLeast(1L)
                     Text(stringResource(R.string.latest_trip_complete), style = MaterialTheme.typography.titleMedium)
                     Text(stringResource(R.string.trip_compact_summary, minutes, String.format(Locale.getDefault(), "%.1f", trip.distanceMeters / 1_000.0)), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (trip.blockedNotifications.isNotEmpty()) {
+                        Text(
+                            stringResource(R.string.notifications_avoided, trip.blockedNotifications.values.sum()),
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.titleSmall,
+                        )
+                    }
                 }
             }
         }

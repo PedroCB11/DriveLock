@@ -145,4 +145,13 @@
     <string name="diagnostics_seconds">%1$d segundos</string>
     <string name="diagnostics_accepted">Amostras aceitas</string>
     <string name="diagnostics_rejected">Amostras rejeitadas</string>
+    <string name="history_subtitle">Seu progresso e as distrações reduzidas em um só lugar.</string>
+    <string name="your_impact">Seu impacto</string>
+    <string name="trips_label">viagens</string>
+    <string name="minutes_label">minutos</string>
+    <string name="kilometers_label">km</string>
+    <string name="total_notifications_avoided">%1$d notificações deixaram de interromper sua direção</string>
+    <string name="completed_trips">Viagens concluídas</string>
+    <string name="trip_history_summary">%1$s · %2$s km · média de %3$s km/h</string>
+    <string name="no_notifications_avoided">Nenhuma notificação selecionada foi recebida nesta viagem.</string>
 </resources>
